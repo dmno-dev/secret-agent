@@ -2,10 +2,12 @@
   "name": "secret-agent-api",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev --local-protocol https",
-    "deploy": "wrangler deploy --minify"
+    "dev": "dwrangler dev --local-protocol https",
+    "deploy": "dwrangler deploy --minify"
   },
   "dependencies": {
+    "@dmno/cloudflare-platform": "^0.0.3",
+    "@dmno/encrypted-vault-plugin": "^0.0.10",
     "dmno": "^0.0.37",
     "hono": "^4.6.20"
   },

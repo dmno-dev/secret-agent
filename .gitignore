@@ -1,6 +1,7 @@
 .env
 node_modules
 wallet_data.txt
+dist
 
 # dmno files ###
 # local cache for resolved values

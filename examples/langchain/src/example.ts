@@ -1,16 +1,12 @@
-
-// import { enableHttpInterceptor } from "./lib/msw-interceptor";
-import { enableHttpInterceptor } from "./lib/http-interceptor";
-import { enableFetchInterceptor } from "./lib/fetch-interceptor";
-
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph";
 import { tool } from "@langchain/core/tools";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 
-enableHttpInterceptor();
-// enableFetchInterceptor();
+import SecretAgent from 'secretagent.sh';
+
+SecretAgent.init();
 
 // Define the tools for the agent to use
 const fakeWeatherSearch = tool(async ({ query }) => {

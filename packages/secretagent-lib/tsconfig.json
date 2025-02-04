@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "lib": [
+      "ESNext", "dom"
+    ],
+    "types": [
+      "node"
+    ],
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "rootDir": "./",
+    "customConditions": [ "ts-src" ],
+  },
+  "include": [
+    "src/**/*.ts",
+  ]
+}

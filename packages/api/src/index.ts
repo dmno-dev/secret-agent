@@ -1,3 +1,5 @@
+import 'dmno/injector-standalone/edge-auto';
+
 import { Hono } from 'hono'
 
 const app = new Hono()
