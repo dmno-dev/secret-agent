@@ -6,6 +6,7 @@
     "deploy": "wrangler deploy --minify"
   },
   "dependencies": {
+    "dmno": "^0.0.37",
     "hono": "^4.6.20"
   },
   "devDependencies": {

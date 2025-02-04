@@ -91,6 +91,9 @@ importers:
 
   packages/api:
     dependencies:
+      dmno:
+        specifier: ^0.0.37
+        version: 0.0.37(@types/node@22.13.0)
       hono:
         specifier: ^4.6.20
         version: 4.6.20
