@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "keyName": "default-2025-02-04",
+  "items": {
+    "root!OPENAI_API_KEY": {
+      "encryptedValue": "49VIFL2qi9BhgU13Ba/b9ZHMLZeAmQKyabRU1kx0ld0rqdqWq5DI8651KEq4iUGENE8wDFwgH2ti26hpDfIQSZnI7KsBLACMsqxRoEXTRSZkRnuDKb+NmN2mGqJgsB+u2rupWRm0/6QRqb4sFAsgVVXb0QuP+ylavqIScTu1SAskj0faNO9dSYC69QjTpuTI0/lTNv0xa5ldD7U8/x18lEaiqJwpScH/kvPZ4oHKMy5MvSCQgqaj0TgtaXiB4yXGRxA=",
+      "updatedAt": "2025-02-04T22:38:46.243Z"
+    },
+    "root!CDP_API_KEY_PRIVATE_KEY": {
+      "encryptedValue": "KaGCVeuwXojCdv46+F9kPhsvoOfmCqU3Nl4ryzNGMUyzcoEwfNiJhhDkaKa+uAmgZlSBqrvJl+3WMUZJfXS8KALFnmq9SgtT5umI27/rPpSOqrBZjjTzPhm1y+hAFfJ3YIzD4Oj5vvRPmr3wo6ZSwIDJjFVQ8amyEkqWpqfmWjp0J/MtuLHq7DjRjWeqZqfa9UR5+vk7xp2PdV5bA73dAYNGhiw9cJ9DTQUXJpUqUXziU6YV5aXTa1FXEbdhf0JXxqwRmU3g2L0RAy+edzJUwXTI8ZcfK+zH8Iz0wGbXekDE3ZqdPOMGxMMaZFZUulNobgvG/+i8R8vsMZkyOUdAzOLBEppyf+VrKtLM",
+      "updatedAt": "2025-02-04T22:40:51.103Z"
+    }
+  }
+}

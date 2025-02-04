@@ -1,5 +1,5 @@
 {
-  "name": "secret-agent",
+  "name": "secret-agent-monorepo",
   "version": "1.0.0",
   "type": "module",
   "description": "",
@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dmno/encrypted-vault-plugin": "^0.0.10",
     "dmno": "^0.0.37"
   },
   "packageManager": "pnpm@10.2.0+sha256.72f1630812107c8723eb5be4517725f3e13f09cfd8f71571cf29f23ce318bdb7"
