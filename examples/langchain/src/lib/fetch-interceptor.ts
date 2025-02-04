@@ -1,0 +1,73 @@
+// @ts-ignore
+function dmnoPatchedFetch(...args: Array<any>) {
+  
+  const [urlOrFetchOpts, fetchOptsArg] = args;
+  const fetchOpts = (typeof urlOrFetchOpts === 'object' ? urlOrFetchOpts : fetchOptsArg) || {};
+  const fetchUrl = (typeof urlOrFetchOpts === 'object' ? (urlOrFetchOpts as Request).url : urlOrFetchOpts).toString();
+
+  const objToCheckAsString = JSON.stringify(fetchOpts);
+  console.log('patched fetch -',fetchUrl, objToCheckAsString);
+
+  // if ((dmnoPatchedFetch as any)._dmnoSensitiveRegex) {
+  //   const [urlOrFetchOpts, fetchOptsArg] = args;
+  //   const fetchOpts = (typeof urlOrFetchOpts === 'object' ? urlOrFetchOpts : fetchOptsArg) || {};
+  //   const fetchUrl = (typeof urlOrFetchOpts === 'object' ? (urlOrFetchOpts as Request).url : urlOrFetchOpts).toString();
+
+  //   // TODO: probably want to be smarter here and just scan headers, and body depending on content type
+  //   const objToCheckAsString = JSON.stringify(fetchOpts);
+
+  //   const matches = objToCheckAsString.match((dmnoPatchedFetch as any)._dmnoSensitiveRegex);
+  //   for (const match of matches || []) {
+  //     const matchedItem = (dmnoPatchedFetch as any)._dmnoSensitiveLookup[match];
+  //     if (checkUrlInAllowList(fetchUrl, matchedItem.allowedDomains)) continue;
+
+  //     // logging the issue with more details - not sure if this is the best way?
+  //     console.error([
+  //       '',
+  //       `🛑 ${kleur.bgRed(' SENSITIVE CONFIG LEAK INTERCEPTED ')} 🛑`,
+  //       ` > request url: ${kleur.green(fetchUrl)}`,
+  //       ` > config key: ${kleur.blue(matchedItem.key)}`,
+  //       matchedItem.allowedDomains.length
+  //         ? ` > allowed domains: ${kleur.magenta(matchedItem.allowedDomains.join(', '))}`
+  //         : ` > allowed domains: ${kleur.gray().italic('none')}`,
+
+  //       '',
+  //     ].join('\n'));
+
+  //     // this gets turned into a request response, even though I'd like to just throw the error
+  //     // see https://github.com/mswjs/interceptors/issues/579
+  //     // see nextTick above too
+  //     throw new Error(`🛑 SECRET LEAK DETECTED! - ${matchedItem.key} was stopped from being sent to ${fetchUrl}`);
+  //   }
+  // }
+
+  // @ts-ignore
+  return dmnoPatchedFetch._unpatchedFetch.apply(this, args);
+}
+
+
+
+export function enableFetchInterceptor() {
+  // const { regex, lookup } = buildSensitiveValuesLoookup((globalThis as any)._DMNO_SENSITIVE_LOOKUP);
+
+  // console.log('enabling http interceptor', regex, lookup);
+
+  const fetchAlreadyPatched = (globalThis.fetch as any)._patchedByDmno;
+
+  if (fetchAlreadyPatched) {
+    console.log('fetch already patched');
+  } else {
+    const unpatchedFetch = globalThis.fetch;
+    (dmnoPatchedFetch as any)._unpatchedFetch = unpatchedFetch;
+    (dmnoPatchedFetch as any)._patchedByDmno = true;
+    Object.defineProperty(dmnoPatchedFetch, '_patchedByDmno', { value: true });
+    globalThis.fetch = dmnoPatchedFetch;
+  }
+  // (dmnoPatchedFetch as any)._dmnoSensitiveRegex = regex;
+  // (dmnoPatchedFetch as any)._dmnoSensitiveLookup = lookup;
+}
+export function disableFetchInterceptor() {
+  if ((globalThis.fetch as any)._unpatchedFetch) {
+    globalThis.fetch = (globalThis.fetch as any)._unpatchedFetch;
+  }
+}

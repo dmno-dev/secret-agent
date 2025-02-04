@@ -1,0 +1,17 @@
+{
+  "name": "secret-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dmno": "^0.0.37"
+  },
+  "packageManager": "pnpm@10.2.0+sha256.72f1630812107c8723eb5be4517725f3e13f09cfd8f71571cf29f23ce318bdb7"
+}
