@@ -1,0 +1,32 @@
+{
+  "name": "secretagent.sh",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "secretagent.sh": "workspace:",
+    "tsup": "^8.3.6"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "/dist"
+  ],
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "ts-src": "./src/index.ts",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0"
+  }
+}

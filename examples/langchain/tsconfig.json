@@ -10,6 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
     "rootDir": "./",
+    "customConditions": [ "ts-src" ],
   },
   "include": [
     "src/**/*.ts",
