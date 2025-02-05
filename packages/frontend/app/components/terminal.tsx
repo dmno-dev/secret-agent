@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 
 interface TerminalProps {
   children: React.ReactNode;
@@ -14,6 +14,7 @@ interface TerminalProps {
 export function Terminal({ children }: TerminalProps) {
   const { theme, setTheme } = useTheme();
   const { isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
 
@@ -23,7 +24,11 @@ export function Terminal({ children }: TerminalProps) {
         <div className="flex justify-between items-center bg-gray-200 dark:bg-green-900 p-2 rounded-t-lg">
           <div className="flex items-center space-x-4">
             <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div
+                className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-600 transition-colors"
+                onClick={() => isConnected && disconnect()}
+                title={isConnected ? "Disconnect wallet" : ""}
+              ></div>
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
