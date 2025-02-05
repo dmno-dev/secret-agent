@@ -6,6 +6,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "start": "pnpm --filter frontend start",
+    "preview": "pnpm build && pnpm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

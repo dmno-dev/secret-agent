@@ -1,4 +1,4 @@
-import { createConfig, http } from "wagmi";
+import { createConfig, createStorage, http } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
 export const config = createConfig({
@@ -6,4 +6,8 @@ export const config = createConfig({
   transports: {
     [baseSepolia.id]: http(),
   },
+  storage: createStorage({
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  }),
+  multiInjectedProviderDiscovery: false,
 });

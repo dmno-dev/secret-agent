@@ -5,16 +5,26 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { config } from "@/config/wagmi";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
-import { State, WagmiProvider } from "wagmi";
-import { baseSepolia } from "wagmi/chains"; // add base for production
+import { useEffect, useState, type ReactNode } from "react";
+import { WagmiProvider } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
+
 const queryClient = new QueryClient();
 
-function ProvidersInner(props: { children: ReactNode; initialState?: State }) {
+function ProvidersInner(props: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <WagmiProvider config={config} initialState={props.initialState}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <OnchainKitProvider
           apiKey={DMNO_PUBLIC_CONFIG.ONCHAINKIT_API_KEY}
@@ -36,10 +46,7 @@ function ProvidersInner(props: { children: ReactNode; initialState?: State }) {
   );
 }
 
-export function Providers(props: {
-  children: ReactNode;
-  initialState?: State;
-}) {
+export function Providers(props: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ProvidersInner {...props} />
