@@ -3,17 +3,15 @@
 
   That library does lots of stuff to intercept requests, however it is used for mocking, not for altering requests
   so we copy some of their strategies (and helper code), but adjust to alter the requests
-
 */
 import { urlToHttpOptions } from 'node:url'
-import http, {
+import {
   Agent,
-  ClientRequest,
   Agent as HttpAgent,
   globalAgent as httpGlobalAgent,
   IncomingMessage,
 } from 'node:http'
-import https, {
+import {
   RequestOptions,
   Agent as HttpsAgent,
   globalAgent as httpsGlobalAgent,

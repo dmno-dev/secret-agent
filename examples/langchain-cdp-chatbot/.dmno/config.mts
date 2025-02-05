@@ -1,21 +1,18 @@
-import { DmnoBaseTypes, defineDmnoService } from 'dmno';
+import { DmnoBaseTypes, defineDmnoService, pick } from 'dmno';
 
 export default defineDmnoService({
   schema: {
-    OPENAI_API_KEY: {
-      required: true,
-      sensitive: true,
-    },
     NETWORK_ID: {
-      value: 'base-sepolia'
+      required: true,
+      extends: pick(),
     },
     CDP_API_KEY_NAME: {
       required: true,
+      extends: pick(),
     },
     CDP_API_KEY_PRIVATE_KEY: {
-      sensitive: true,
       required: true,
-      coerce: (val) => val.replaceAll('\\n', '\n'),
+      extends: pick(),
     },
   },
 });

@@ -5,12 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "secretagent.sh": "workspace:",
-    "tsup": "^8.3.6"
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +21,12 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "dependencies": {
+    "ky": "^1.7.4",
+    "undici": "^7.3.0"
+  },
   "devDependencies": {
-    "@types/node": "^22.13.0"
+    "@types/node": "^22.13.0",
+    "tsup": "^8.3.6"
   }
 }

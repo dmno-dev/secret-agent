@@ -20,6 +20,7 @@
     "@langchain/langgraph": "^0.2.21",
     "@langchain/openai": "^0.3.14",
     "dmno": "^0.0.37",
+    "secretagent.sh": "workspace:",
     "typescript": "^5.7.3",
     "zod": "^3.22.4"
   },

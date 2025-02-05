@@ -1,4 +1,5 @@
 import 'dmno/auto-inject-globals'
+
 import {
   AgentKit,
   CdpWalletProvider,
@@ -16,6 +17,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import * as fs from "fs";
 import * as readline from "readline";
+import SecretAgent from 'secretagent.sh';
 
 // Configure a file to persist the agent's CDP MPC Wallet Data
 const WALLET_DATA_FILE = "../wallet_data.txt";
@@ -29,7 +31,8 @@ async function initializeAgent() {
   try {
     // Initialize LLM
     const llm = new ChatOpenAI({
-      model: "gpt-4o-mini",
+      model: 'not-a-real-model', // will be set via proxy
+      apiKey: "{{LLM_API_KEY}}" // will be replaced/injected in proxy
     });
 
     let walletDataStr: string | null = null;
@@ -53,6 +56,20 @@ async function initializeAgent() {
     };
 
     const walletProvider = await CdpWalletProvider.configureWithWallet(config);
+    // Save wallet data
+    const exportedWallet = await walletProvider.exportWallet();
+    fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
+
+    const walletAddress = walletProvider.getAddress();
+    const signedMessage = await walletProvider.signMessage('log into secret agent');
+    console.log('agent wallet address =', walletAddress);
+    console.log('signed message =', signedMessage);
+
+    await SecretAgent.init({
+      projectAddress: '0x...',
+      agentAddress: walletAddress,
+      signMessage: walletProvider.signMessage
+    });
 
     // Initialize AgentKit
     const agentkit = await AgentKit.from({
@@ -97,9 +114,7 @@ async function initializeAgent() {
         `,
     });
 
-    // Save wallet data
-    const exportedWallet = await walletProvider.exportWallet();
-    fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
+    
 
     return { agent, config: agentConfig };
   } catch (error) {
@@ -122,9 +137,10 @@ async function runAutonomousMode(agent: any, config: any, interval = 10) {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      const thought =
-        "Be creative and do something interesting on the blockchain. " +
-        "Choose an action or set of actions and execute it that highlights your abilities.";
+      const thought = `
+Be creative and do something interesting on the blockchain.
+Choose an action or set of actions and execute it that highlights your abilities.
+`;
 
       const stream = await agent.stream({ messages: [new HumanMessage(thought)] }, config);
 

@@ -17,6 +17,7 @@ export default defineDmnoService({
       extends: EncryptedVaultTypes.encryptionKey,
     },
     NETWORK_ID: {
+      value: 'base-sepolia',
     },
     
     OPENAI_API_KEY: {
@@ -34,6 +35,7 @@ export default defineDmnoService({
     CDP_API_KEY_PRIVATE_KEY: {
       sensitive: true,
       value: SecretVault.item(),
+      coerce: (val) => val.replaceAll('\\n', '\n'),
     },
   },
 });
