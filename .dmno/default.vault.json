@@ -9,6 +9,10 @@
     "root!CDP_API_KEY_PRIVATE_KEY": {
       "encryptedValue": "KaGCVeuwXojCdv46+F9kPhsvoOfmCqU3Nl4ryzNGMUyzcoEwfNiJhhDkaKa+uAmgZlSBqrvJl+3WMUZJfXS8KALFnmq9SgtT5umI27/rPpSOqrBZjjTzPhm1y+hAFfJ3YIzD4Oj5vvRPmr3wo6ZSwIDJjFVQ8amyEkqWpqfmWjp0J/MtuLHq7DjRjWeqZqfa9UR5+vk7xp2PdV5bA73dAYNGhiw9cJ9DTQUXJpUqUXziU6YV5aXTa1FXEbdhf0JXxqwRmU3g2L0RAy+edzJUwXTI8ZcfK+zH8Iz0wGbXekDE3ZqdPOMGxMMaZFZUulNobgvG/+i8R8vsMZkyOUdAzOLBEppyf+VrKtLM",
       "updatedAt": "2025-02-04T22:40:51.103Z"
+    },
+    "root!LANGSMITH_API_KEY": {
+      "encryptedValue": "HgfVByO/a0spjcSAPkom4W7lNnpXhOONpTw1wn1PxIdNgx/D7cxB4+53Hb9uMGFBU4LtMfEjREquczAjuNY8zD4nyIGRnRWFOw/V8pr0RUlm",
+      "updatedAt": "2025-02-05T08:06:28.550Z"
     }
   }
 }

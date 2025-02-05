@@ -2,8 +2,9 @@ import http from 'node:http'
 import https from 'node:https'
 
 import { normalizeClientRequestArgs } from './lib/msw-utils';
+import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
-export function enableHttpInterceptor() {
+export function enableHttpInterceptor(domainPatterns: Array<string>) {
   const { get: originalGet, request: originalRequest } = http;
   const { get: originalHttpsGet, request: originalHttpsRequest } = https;
 
@@ -15,7 +16,9 @@ export function enableHttpInterceptor() {
       args
     );
 
-    if (url.href.startsWith('https://api.openai.com')) {
+    if (checkUrlInPatternList(url.href, domainPatterns)) {
+      console.log('proxy!')
+    // if (url.href.startsWith('https://api.openai.com')) {
       
       // delete url related config from options
       delete options.host;

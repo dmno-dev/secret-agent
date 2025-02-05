@@ -9,6 +9,7 @@
     "@dmno/cloudflare-platform": "^0.0.3",
     "@dmno/encrypted-vault-plugin": "^0.0.10",
     "dmno": "^0.0.37",
+    "ethers": "^6.13.5",
     "hono": "^4.6.20"
   },
   "devDependencies": {
