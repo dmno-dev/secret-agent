@@ -13,6 +13,18 @@
     "root!LANGSMITH_API_KEY": {
       "encryptedValue": "HgfVByO/a0spjcSAPkom4W7lNnpXhOONpTw1wn1PxIdNgx/D7cxB4+53Hb9uMGFBU4LtMfEjREquczAjuNY8zD4nyIGRnRWFOw/V8pr0RUlm",
       "updatedAt": "2025-02-05T08:06:28.550Z"
+    },
+    "root!PRIVY_APP_SECRET": {
+      "encryptedValue": "oc0T3f88cvIT4rf4AxvS5zEVy3THSlACMrzEFeHFtnwNGlDRCiEdu+ZmgmLWh3DQXHmao2futYxHzdk5JxbuPWYNAwjXgfuUkm1H63CF0lif2QjASpDVHh4E+UJI7KADOFNsRwNJUHrMRJ/lbkg++sDxwU8uJQ==",
+      "updatedAt": "2025-02-05T17:34:09.939Z"
+    },
+    "root!CLOUDFLARE_API_TOKEN": {
+      "encryptedValue": "9++IHGmMmQG69YgYadFK8U59zex/y4Q/WmbOi/Dkxf2Ocw/ihgTvvS1F/99Nr3AQiR0yx0JJWQsxuSW+YsBr834rwSEdHg==",
+      "updatedAt": "2025-02-05T21:37:12.489Z"
+    },
+    "root!CLOUDFLARE_ACCOUNT_ID": {
+      "encryptedValue": "oZ2NbBA28sMuk1vNdF9AaMFH58A3ABkKWAjRoVs9dotOP99prUZMnwDPz0grhF9MkkXv2O1ZSfcF9cPcYC0=",
+      "updatedAt": "2025-02-05T21:47:23.854Z"
     }
   }
 }

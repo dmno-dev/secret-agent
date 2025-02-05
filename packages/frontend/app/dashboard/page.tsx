@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NewProjectModal } from "./components/new-project-modal";
 import { ProjectDetails } from "./components/project-details";
 import { ProjectList } from "./components/project-list";
@@ -15,6 +15,13 @@ export default function Dashboard() {
     id: string;
   } | null>(null);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+
+  // dumb example just showing we can hit the api and uses dmno to get the url
+  useEffect(() => {
+    fetch(DMNO_PUBLIC_CONFIG.SECRETAGENT_API_URL).then(async (result) => {
+      console.log('hit SA api!', await result.json())
+    })
+  });  
 
   return (
     <div className="h-full space-y-6">

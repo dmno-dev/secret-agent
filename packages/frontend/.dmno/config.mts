@@ -1,14 +1,25 @@
-import { DmnoBaseTypes, defineDmnoService } from 'dmno';
+import { DmnoBaseTypes, defineDmnoService, pick, switchBy } from 'dmno';
 
 export default defineDmnoService({
-  // no `name` specified - will inherit from package.json
+  name: 'frontend',
   schema: {
-    ONCHAINKIT_API_KEY: {
-      externalDocs: {
-        description: "OnchainKit Public API Key",
-        url: "https://onchainkit.xyz/installation/nextjs#get-your-client-api-key",
-      },
-      value: "B3HXZFf3UD56w3OhKwk0NmgZx9CT1fLv",
+    SECRETAGENT_ENV: pick(),
+    SECRETAGENT_API_URL: pick('api'),
+    ONCHAINKIT_API_KEY: pick('root', 'CDP_CLIENT_API_KEY'),
+
+    PORT: {
+      extends: DmnoBaseTypes.port,
+      value: 3000,
     },
+
+    SECRETAGENT_WEB_URL: {
+      extends: 'url',
+      required: true,
+      value: switchBy('SECRETAGENT_ENV', {
+        'local': () => `http://localhost:${DMNO_CONFIG.PORT}`,
+        'production': 'https://secretagent.sh',
+      })
+    }
+
   },
 });
