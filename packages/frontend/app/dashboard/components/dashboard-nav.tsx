@@ -35,10 +35,10 @@ export function DashboardNav() {
       <div className="flex items-center">
         <Wallet>
           <ConnectWallet className={walletButtonStyles}>
-            <Address isSliced />
+            <Address hasCopyAddressOnClick={false} />
           </ConnectWallet>
           <WalletDropdown>
-            <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+            <Identity className="px-4 pt-3 pb-2">
               <Address />
               <EthBalance />
             </Identity>
