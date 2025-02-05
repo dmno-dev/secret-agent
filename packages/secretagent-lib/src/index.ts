@@ -49,6 +49,7 @@ class SecretAgent {
     console.log(settings);
     this.projectSettings = settings;
     this.enableHttpsInterceptor();
+    this.enableFetchInterceptor();
   }
   private enableHttpsInterceptor() {
     const { get: originalHttpsGet, request: originalHttpsRequest } = https;
@@ -62,11 +63,11 @@ class SecretAgent {
       const [url, options, callback] = normalizeClientRequestArgs('https:', args);
   
       if (!checkUrlInPatternList(url.href, projectSettings.proxyDomains)) {
-        console.log(`> ${url} (no proxy)`);
+        // console.log(`> https req ${url} (no proxy)`);
         return originalHttpsRequest(...args);
       }
       
-      console.log(`> ${url} (proxy!)`);
+      // console.log(`> https req ${url} (proxy!)`);
       // delete url related config from options
       delete options.host;
       delete options.hostname;
@@ -87,6 +88,54 @@ class SecretAgent {
           method: 'POST',
         }
       );
+    }
+  }
+  private enableFetchInterceptor() {
+    const projectSettings = this.projectSettings;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = function patchedFetch(...args: Parameters<typeof fetch>) {
+      const [urlOrFetchOpts, fetchOptsArg] = args;
+      let url: string;
+      let headers: Record<string, string> = {};
+      let method: string | undefined;
+      let body: any;
+      if (urlOrFetchOpts instanceof URL) {
+        url = urlOrFetchOpts.href;
+      } else if (urlOrFetchOpts instanceof Request) {
+        url = urlOrFetchOpts.url;
+        body = urlOrFetchOpts.body;
+        Object.assign(headers, urlOrFetchOpts.headers);
+      } else {
+        url = urlOrFetchOpts;
+      }
+      if (fetchOptsArg) {
+        // console.log(fetchOptsArg.headers);
+        Object.assign(headers, fetchOptsArg.headers);
+        method = fetchOptsArg.method;
+        body = fetchOptsArg.body;
+      }
+    
+      if (!checkUrlInPatternList(url, projectSettings.proxyDomains)) {
+        // console.log(`> fetch ${url} (no proxy)`);
+        return originalFetch(...args);
+      }
+
+      headers['sa-original-url'] = url;
+      headers['sa-original-method'] = method || 'get';
+
+      // console.log('making proxy fetch req', url, headers);
+
+      return originalFetch(`${SECRETAGENT_API_URL}/proxy`, {
+        headers,
+        method,
+        body,
+
+        ...SECRETAGENT_API_URL.startsWith('https://localhost:') && {
+          // @ts-ignore
+          dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
+        },
+        
+      });
     }
   }
 }

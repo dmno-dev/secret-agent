@@ -37,5 +37,10 @@ export default defineDmnoService({
       value: SecretVault.item(),
       coerce: (val) => val.replaceAll('\\n', '\n'),
     },
+
+    LANGSMITH_API_KEY: {
+      sensitive: true,
+      value: SecretVault.item(),
+    }
   },
 });

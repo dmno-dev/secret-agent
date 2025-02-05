@@ -4,7 +4,7 @@ export const proxyRoutes = new Hono();
 
 proxyRoutes.all('/proxy', async (c) => {
   const originalUrl = c.req.header('sa-original-url');
-  const originalMethod = c.req.header('sa-original-method') || 'get';
+  const originalMethod = c.req.header('sa-original-method')?.toLowerCase() || 'get';
   if (!originalUrl) {
     return c.json({ error: 'Missing required header `sa-original-url`'}, 400);
   }
@@ -13,11 +13,12 @@ proxyRoutes.all('/proxy', async (c) => {
 
   // fill in our secrets
   const headers = c.req.header();
-  console.log('headers', JSON.stringify(headers));
   let headersJsonStr = JSON.stringify(headers);
   
-  if (headersJsonStr.includes('{{LLM_API_KEY}}'))
+  // TODO fetch project settings and replace keys accordingly
+  // should first check if url matches pattern and replace relevant keys only
   headersJsonStr = headersJsonStr.replace('{{LLM_API_KEY}}', DMNO_CONFIG.MASTER_OPENAI_API_KEY);
+  headersJsonStr = headersJsonStr.replace('{{LANGSMITH_API_KEY}}', DMNO_CONFIG.MASTER_LANGSMITH_API_KEY);
 
   const headersJson = JSON.parse(headersJsonStr);
   delete headersJson['sa-original-url'];
@@ -25,14 +26,17 @@ proxyRoutes.all('/proxy', async (c) => {
   delete headersJson['host'];
   delete headersJson['cf-connecting-ip'];
   
-  const reqBodyStr = await c.req.text();
-  console.log(reqBodyStr);
-  
-  // example showing changing the model in the proxy
-  const reqBodyObj = JSON.parse(reqBodyStr);
-  reqBodyObj.model = 'gpt-4o-mini';
-  const updatedReqBodyStr = JSON.stringify(reqBodyObj);
-  
+  let bodyToSend: string | Blob | undefined;
+  if (headersJson['content-type'] === 'application/json') {
+    // example showing changing the model in the proxy
+    let reqBodyObj = await c.req.json();
+    if (reqBodyObj.model) {
+      reqBodyObj.model = 'gpt-4o-mini';
+    }
+    bodyToSend = JSON.stringify(reqBodyObj);  
+  } else if (originalMethod !== 'get' && originalMethod !== 'head') {
+    bodyToSend = await c.req.blob();
+  }
   
   // TODO: do we want to substitution in request body too?
   // note - if we mess with the body, we'll have to adjust content-length header
@@ -43,7 +47,7 @@ proxyRoutes.all('/proxy', async (c) => {
   const llmResult = await fetch(originalUrl, {
     method: originalMethod,
     headers: headersJson,
-    body: updatedReqBodyStr,
+    ...bodyToSend && { body: bodyToSend },
   });
 
   const resBodyText = await llmResult.text();
@@ -55,6 +59,11 @@ proxyRoutes.all('/proxy', async (c) => {
   //   statusCode: llmResult.status,
   //   contentType: resultContentType,
   // })
+
+
+  if (llmResult.status !== 200) {
+    console.log('Error!', resBodyText);
+  }
 
   return c.body(resBodyText, llmResult.status as any);
 });
