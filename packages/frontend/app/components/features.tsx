@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BarChart,
   Coins,
@@ -56,7 +58,7 @@ function FeatureItem({
 
   return (
     <div
-      className="flex items-start space-x-3 p-2 rounded transition-colors duration-200 hover:bg-gray-800"
+      className="flex items-start space-x-3 p-2 rounded transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700"
       onMouseEnter={() => {
         startTitleScramble();
         startDescriptionScramble();
@@ -74,7 +76,7 @@ function FeatureItem({
 export function Features() {
   return (
     <section className="mb-8">
-      <h2 className="text-2xl font-bold mb-4">$ ls features</h2>
+      <h2 className="text-2xl font-bold mb-4 font-mono">$ ls features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {features.map((feature, index) => (
           <FeatureItem key={index} {...feature} />

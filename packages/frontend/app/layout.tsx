@@ -20,7 +20,7 @@ export default function RootLayout(props: { children: ReactNode }) {
   const initialState = cookieToInitialState(config, headers().get("cookie"));
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className={GeistSans.className}>
+      <body className={`${GeistSans.className} ${GeistMono.className}`}>
         <Providers initialState={initialState}>{props.children}</Providers>
       </body>
     </html>

@@ -1,6 +1,6 @@
-import type { Config } from "tailwindcss";
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -13,9 +13,6 @@ const config: Config = {
         mono: ["var(--font-geist-mono)"],
       },
       colors: {
-        green: {
-          400: "#00ff00",
-        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -55,10 +52,10 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      transitionDuration: {
+        50: "50ms",
+      },
     },
   },
-  darkMode: "class",
-  plugins: [],
+  plugins: [import("tailwindcss-animate")],
 };
-
-export default config;
