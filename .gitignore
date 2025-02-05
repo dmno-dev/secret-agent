@@ -3,6 +3,8 @@ node_modules
 wallet_data.txt
 dist
 
+.turbo
+
 # dmno files ###
 # local cache for resolved values
 **/.dmno/cache.json

@@ -1,19 +1,30 @@
 {
-  "name": "secret-agent-api",
+  "name": "@secretagent.sh/api",
   "private": true,
   "scripts": {
-    "dev": "dwrangler dev --local-protocol https",
-    "deploy": "dwrangler deploy --minify"
+    "dev": "dwrangler dev --local-protocol https --local --env local",
+    "deploy": "dwrangler deploy --minify",
+    "db:generate": "drizzle-kit generate",
+    "db:regenerate": "drizzle-kit drop && drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply secret-agent-dev --local --env local",
+		"db:migrate:prod": "wrangler d1 migrations apply secret-agent-prod --remote",
+		"db:migrate:preview": "wrangler d1 migrations apply --env preview secret-agent-preview --remote",
+		"db:studio:local": "LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print -quit) drizzle-kit studio",
+		"db:studio:preview": "source .drizzle.env && DB_ID='yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy' drizzle-kit studio",
+		"db:studio:prod": "source .drizzle.env && DB_ID='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' drizzle-kit studio"
   },
   "dependencies": {
     "@dmno/cloudflare-platform": "^0.0.3",
     "@dmno/encrypted-vault-plugin": "^0.0.10",
+    "@privy-io/server-auth": "^1.18.5",
     "dmno": "^0.0.37",
+    "drizzle-orm": "^0.39.1",
     "ethers": "^6.13.5",
     "hono": "^4.6.20"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "drizzle-kit": "^0.30.4",
     "wrangler": "^3.101.0"
   }
 }

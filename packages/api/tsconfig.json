@@ -16,5 +16,6 @@
   },
   "include": [
     "src/**/*.ts",
+    "dmno-env.d.ts",
   ]
 }

@@ -5,10 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --filter frontend dev",
-    "build": "pnpm --filter frontend build",
-    "start": "pnpm --filter frontend start",
-    "preview": "pnpm build && pnpm start",
+    "db:setup": "pnpm --filter \"@secretagent.sh/api\" run db:migrate:local",
+    "dev": "turbo dev --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
+    "build": "turbo build --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,7 +16,9 @@
   "dependencies": {
     "@dmno/cloudflare-platform": "^0.0.3",
     "@dmno/encrypted-vault-plugin": "^0.0.10",
-    "dmno": "^0.0.37"
+    "@dmno/nextjs-integration": "^0.0.14",
+    "dmno": "^0.0.37",
+    "turbo": "^2.4.0"
   },
   "engines": {
     "node": ">=22"
