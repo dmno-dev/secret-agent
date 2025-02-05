@@ -11,10 +11,12 @@ response = agent.request('GET', 'https://api.example.com/data')
 # and usage tracking behind the scenes`;
 
   return (
-    <section className="mb-8">
-      <h2 className="text-2xl font-bold mb-4">$ vim integration_example.py</h2>
-      <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto">
-        <code className="text-sm">{code}</code>
+    <section className="mb-12">
+      <h2 className="text-2xl font-bold mb-4 font-mono">
+        $ vim integration_example.py
+      </h2>
+      <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm font-mono">
+        <code>{code}</code>
       </pre>
     </section>
   );
