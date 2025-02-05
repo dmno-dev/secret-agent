@@ -17,7 +17,7 @@ function ProvidersInner(props: { children: ReactNode; initialState?: State }) {
     <WagmiProvider config={config} initialState={props.initialState}>
       <QueryClientProvider client={queryClient}>
         <OnchainKitProvider
-          apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+          apiKey={DMNO_PUBLIC_CONFIG.ONCHAINKIT_API_KEY}
           chain={baseSepolia} // add baseSepolia for testing
           config={{
             appearance: {

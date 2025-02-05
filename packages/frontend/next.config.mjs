@@ -1,3 +1,4 @@
+import { dmnoNextConfigPlugin } from '@dmno/nextjs-integration';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -8,4 +9,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default dmnoNextConfigPlugin()(nextConfig);
