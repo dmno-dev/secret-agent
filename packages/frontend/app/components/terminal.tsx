@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
+import { WalletButton } from './wallet-button';
 
 interface TerminalProps {
   children: React.ReactNode;
@@ -36,7 +37,11 @@ export function Terminal({ children }: TerminalProps) {
                 title={isConnected ? 'Disconnect wallet' : ''}
               ></div>
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <div
+                className="w-3 h-3 rounded-full bg-green-500 cursor-pointer hover:bg-green-600 transition-colors"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                title="Toggle theme"
+              ></div>
             </div>
             {isConnected && !isDashboard && (
               <Link
@@ -55,12 +60,16 @@ export function Terminal({ children }: TerminalProps) {
               </Link>
             )}
           </div>
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+
+          <div className="flex items-center space-x-4">
+            <WalletButton />
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
         </div>
         <div className="p-4 bg-gray-100 dark:bg-gray-900 transition-colors duration-100">
           {children}
