@@ -1,18 +1,35 @@
-import ky, { KyInstance } from 'ky';
+import ky, { HTTPError, KyInstance } from 'ky';
 import { Agent } from 'undici';
 import https from 'node:https'
+import { setTimeout } from 'node:timers/promises';
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
 // TODO: swap to prod url
-const SECRETAGENT_API_URL = 'https://localhost:8787/api'
+const SECRETAGENT_API_URL = 'https://localhost:8881'
 
-type ProjectSettings = {
+type ProjectMetadata = {
   proxyDomains: Array<string>,
 }
 
+type ProjectInitSettings = {
+  /** address used to identify this SecretAgent project - also holds the funds which pay for usage */
+  projectId: string,
+  /** wallet address of this agent, will be used to identify it */
+  agentId: string,
+  /** name/label for this agent, shown in the dashbaoard */
+  agentLabel: string,
+  /** method that signs a message using agent's wallet/keys  */
+  signMessage: (m: string) => Promise<string>
+  /** max number of times to retry init if agent status is pending (optional, defaults to 10) */
+  maxRetryCount?: number,
+}
+
+
+
 class SecretAgent {
-  projectSettings!: ProjectSettings;
+  initSettings!: ProjectInitSettings;
+  projectMetadata!: ProjectMetadata;
   api: KyInstance;
 
   constructor() {
@@ -25,44 +42,72 @@ class SecretAgent {
         dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
       },
       
-      
-      // hooks: {
-      //   beforeRequest: [
-      //     request => {
-      //       request.headers.set('X-Requested-With', 'ky');
-      //     }
-      //   ]
-      // }
+      hooks: {
+        beforeRequest: [
+          async (request) => {
+            // await this.regenerateAuthHeader();
+            request.headers.set('sa-agent-auth', this.agentAuthHeader);
+            request.headers.set('sa-agent-label', this.initSettings.agentLabel);
+          }
+        ]
+      }
     });
   }
 
-  async init(initOptions: {
-    /** address used to identify this SecretAgent project - also holds the funds which pay for usage */
-    projectAddress: string,
-    /** wallet address of this agent, will be used to identify it */
-    agentAddress: string,
-    /** method that signs a message using agent's wallet/keys  */
-    signMessage: (m: string) => Promise<string>
-  }) {
-    const settingsReq = await this.api.get('project-config');
-    const settings: any = await settingsReq.json();
-    console.log(settings);
-    this.projectSettings = settings;
+  async init(initSettings: ProjectInitSettings) {
+    this.initSettings = initSettings;
+
+    const maxRetryCount = this.initSettings.maxRetryCount ?? 10;
+
+    for (let retryCount = 0; retryCount < maxRetryCount; retryCount++) {
+      try {
+        await this.regenerateAuthHeader();
+        const metadataReq = await this.api.get('agent/project-metadata');
+        const metadata: any = await metadataReq.json();
+        console.log(metadata);
+        this.projectMetadata = metadata;
+        // unref helps it not keep the process running
+        setInterval(() => this.regenerateAuthHeader(), 25000).unref();
+        break;
+      } catch (err) {
+        if (err instanceof HTTPError) {
+          const errBody = await err.response.json();
+          if (errBody?.status === 'pending') {
+            console.log(`This agent is not yet authorized for this project. Admin must approve it in the dashboard (retry #${retryCount + 1}/${maxRetryCount})`);
+            await setTimeout(10000);
+          } else {
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
+    }  
+    
     this.enableHttpsInterceptor();
     this.enableFetchInterceptor();
   }
+
+  agentAuthHeader!: string;
+  private async regenerateAuthHeader() {
+    // TODO: add some caching here, reuse signed header for a while
+    const message = `${this.initSettings.projectId}//${+new Date()}`;
+    const sig = await this.initSettings.signMessage(message);
+    this.agentAuthHeader = `${message}//${sig}`;
+  }
+
   private enableHttpsInterceptor() {
     const { get: originalHttpsGet, request: originalHttpsRequest } = https;
 
     (https as any)._originalHttpsRequest = originalHttpsRequest;
 
-    const projectSettings = this.projectSettings;
+    const singleton = this;
 
     // @ts-ignore
     https.request = function patchedHttpsRequest (...args: Parameters<typeof https.request>) {
       const [url, options, callback] = normalizeClientRequestArgs('https:', args);
   
-      if (!checkUrlInPatternList(url.href, projectSettings.proxyDomains)) {
+      if (!checkUrlInPatternList(url.href, singleton.projectMetadata.proxyDomains)) {
         // console.log(`> https req ${url} (no proxy)`);
         return originalHttpsRequest(...args);
       }
@@ -78,10 +123,11 @@ class SecretAgent {
       // pass along original request URL and method as headers
       headers['sa-original-url'] = url.href
       headers['sa-original-method'] = options.method;
+      headers['sa-agent-auth'] = singleton.agentAuthHeader;
 
       return originalHttpsRequest(
         // call our proxy url instead
-        `${SECRETAGENT_API_URL}/proxy`, {
+        `${SECRETAGENT_API_URL}/agent/proxy`, {
           ...options,
           headers,
           rejectUnauthorized: false,
@@ -91,7 +137,7 @@ class SecretAgent {
     }
   }
   private enableFetchInterceptor() {
-    const projectSettings = this.projectSettings;
+    const singleton = this;
     const originalFetch = globalThis.fetch;
     globalThis.fetch = function patchedFetch(...args: Parameters<typeof fetch>) {
       const [urlOrFetchOpts, fetchOptsArg] = args;
@@ -115,17 +161,18 @@ class SecretAgent {
         body = fetchOptsArg.body;
       }
     
-      if (!checkUrlInPatternList(url, projectSettings.proxyDomains)) {
+      if (!checkUrlInPatternList(url, singleton.projectMetadata.proxyDomains)) {
         // console.log(`> fetch ${url} (no proxy)`);
         return originalFetch(...args);
       }
 
       headers['sa-original-url'] = url;
       headers['sa-original-method'] = method || 'get';
+      headers['sa-agent-auth'] = singleton.agentAuthHeader;
 
       // console.log('making proxy fetch req', url, headers);
 
-      return originalFetch(`${SECRETAGENT_API_URL}/proxy`, {
+      return originalFetch(`${SECRETAGENT_API_URL}/agent/proxy`, {
         headers,
         method,
         body,

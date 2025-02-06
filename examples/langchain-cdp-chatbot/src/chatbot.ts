@@ -23,8 +23,8 @@ import SecretAgent from 'secretagent.sh';
 const WALLET_DATA_FILE = "../wallet_data.txt";
 
 // ideally set up the tracer more explicitly?
-process.env.LANGSMITH_TRACING="true";
-process.env.LANGSMITH_API_KEY="{{LANGSMITH_API_KEY}}";
+// process.env.LANGSMITH_TRACING="true";
+// process.env.LANGSMITH_API_KEY="{{LANGSMITH_API_KEY}}";
 
 /**
  * Initialize the agent with CDP Agentkit
@@ -35,9 +35,8 @@ async function initializeAgent() {
   try {
     // Initialize LLM
     const llm = new ChatOpenAI({
-      // model: 'not-a-real-model', // will be set via proxy
       model: 'gpt-4o-mini',
-      apiKey: "{{LLM_API_KEY}}" // will be replaced/injected in proxy
+      apiKey: "{{LLM_KEY}}" // will be replaced/injected in proxy
     });
 
     let walletDataStr: string | null = null;
@@ -67,13 +66,12 @@ async function initializeAgent() {
 
     const walletAddress = walletProvider.getAddress();
     const signedMessage = await walletProvider.signMessage('log into secret agent');
-    console.log('agent wallet address =', walletAddress);
-    console.log('signed message =', signedMessage);
 
     await SecretAgent.init({
-      projectAddress: '0x...',
-      agentAddress: walletAddress,
-      signMessage: walletProvider.signMessage
+      projectId: '0x56bACCEBb3ade4b3Ead31b240867D7361b76DB71',
+      agentId: walletAddress,
+      agentLabel: 'cdp agentkit example',
+      signMessage: (msg) => walletProvider.signMessage(msg),
     });
 
     // Initialize AgentKit
@@ -257,7 +255,8 @@ async function chooseMode(): Promise<"chat" | "auto"> {
 async function main() {
   try {
     const { agent, config } = await initializeAgent();
-    const mode = await chooseMode();
+    // const mode = await chooseMode();
+    const mode = 'chat';
 
     if (mode === "chat") {
       await runChatMode(agent, config);

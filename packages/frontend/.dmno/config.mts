@@ -16,7 +16,7 @@ export default defineDmnoService({
       extends: 'url',
       required: true,
       value: switchBy('SECRETAGENT_ENV', {
-        'local': () => `http://localhost:${DMNO_CONFIG.PORT}`,
+        'local': () => `https://localhost:${DMNO_CONFIG.PORT}`,
         'production': 'https://secretagent.sh',
       })
     }

@@ -1,70 +1,134 @@
-import { ethers } from "ethers";
-import { Hono } from "hono";
-import { MOCKED_PROJECT_DATA } from "../lib/project-data";
-import { createServerWallet } from "../lib/privy";
+import { createMiddleware } from 'hono/factory'
+import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
+import { Hono } from 'hono';
+import { eq } from 'drizzle-orm';
 
-export const projectRoutes = new Hono();
+import { createPrivyServerWallet } from "../lib/privy";
+import { configItemsTable, projectsTable } from "../db/schema";
+import { HonoEnv, loggedInOnly } from '../lib/middlewares';
 
-projectRoutes.get('/project-config', async (c) => {
+export const projectRoutes = new Hono<HonoEnv>();
 
-  const proxyDomains: Array<string> = ['api.openai.com'];
+// create new project
+projectRoutes.post(
+  '/projects',
+  loggedInOnly,
+  zValidator(
+    'json',
+    z.object({
+      name: z.string().trim().default('Default project'),
+    }),
+  ),
+  async (c) => {
+    const body = c.req.valid('json');
+    console.log('body', body)
+    const db = c.var.db;
 
-  // const domains = 
-  for (const itemKey in MOCKED_PROJECT_DATA.configItems) {
-    const configItem = MOCKED_PROJECT_DATA.configItems[itemKey];
-    proxyDomains.push(...configItem.urlPatterns);
+    const serverWalletInfo = await createPrivyServerWallet();
 
+    const newProject = await db.insert(projectsTable).values({
+      id: serverWalletInfo.address,
+      privyServerWalletId: serverWalletInfo.id,
+      name: body.name,
+      ownedByUserId: c.var.authUserId,
+    }).returning();
+
+    return c.json(newProject[0]);
+  }
+);
+
+// get list of projects
+projectRoutes.get(
+  '/projects',
+  loggedInOnly,
+  async (c) => {
+    const db = c.var.db;
+    const projects = await db.query.projectsTable.findMany({
+      where: (projectsTable, { eq }) => eq(projectsTable.ownedByUserId, c.var.authUserId),
+    });
+    return c.json(projects);
+  }
+);
+
+export const projectIdMiddleware = createMiddleware<HonoEnv & {
+  Variables: {
+    project: any
+  }
+}>(async (c, next) => {
+  if (!c.var.authUserId) {
+    return c.json({ error: 'You must be logged in' }, 401);
   }
 
-  return c.json({
-    contactEmail: MOCKED_PROJECT_DATA.contactEmail,
-    proxyDomains,
-  })
-
-  return c.json(MOCKED_PROJECT_DATA);
-})
-
-// create project endpoint
-projectRoutes.post('/projects', async (c) => {
-  const serverWalletInfo = await createServerWallet();
-
-  return c.json({
-    name: 'Super cool project',
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    id: '0001',
-  });
-});
-
-projectRoutes.get('/projects', async (c) => {
-  const serverWalletInfo = await createServerWallet();
-
-  return c.json({
-    name: 'Super cool project',
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    id: '0001',
-  });
-});
-
-projectRoutes.get('/projects/:projectId', async (c) => {
+  const db = c.var.db;
   const projectId = c.req.param('projectId');
+  if (!projectId) throw new Error('Use this middleware only with a :projectId param');
 
-  const serverWalletInfo = await createServerWallet();
-
-  return c.json({
-    name: 'Super cool project',
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    id: projectId,
+  const project = await db.query.projectsTable.findFirst({
+    where: eq(projectsTable.id, projectId),
   });
+  if (!project) {
+    return c.json({ error: 'Project does not exist' }, 404);
+  }
+  if (project.ownedByUserId !== c.var.authUserId) {
+    return c.json({ error: 'You can only access your own projects' }, 401);
+  }
+
+  c.set('project', project)
+  return next();
 });
 
-projectRoutes.patch('/projects/:projectId', async (c) => {
-  const projectId = c.req.param('projectId');
+// fetch single project - including config items and usage
+projectRoutes.get(
+  '/projects/:projectId',
+  projectIdMiddleware,
+  async (c) => {
+    const project = c.var.project;
+    const db = c.var.db;
 
-  const serverWalletInfo = await createServerWallet();
+    const agents = await db.query.projectAgentsTable.findMany({
+      where: (t, { eq }) => eq(t.projectId, project.id),
+    });
+    
+    const configItems = await db.query.configItemsTable.findMany({
+      where: (t, { eq }) => eq(t.projectId, project.id),
+    });
 
-  return c.json({
-    name: 'Super cool project',
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    id: projectId,
-  });
-});
+    return c.json({
+      project,
+      agents,
+      configItems,
+    });
+  }
+);
+
+// update project settings
+projectRoutes.patch(
+  '/projects/:projectId',
+  projectIdMiddleware,
+  zValidator(
+    'json',
+    z.object({
+      name: z.string().trim(),
+    }),
+  ),
+  async (c) => {
+    const body = c.req.valid('json');
+    const db = c.var.db;
+    const updatedProject = await db.update(projectsTable).set({
+      name: body.name || undefined,
+    }).returning();
+    
+    return c.json(updatedProject);
+  }
+);
+
+// update specific project agent
+projectRoutes.post(
+  '/projects/:projectId/agents/:agentId/enable',
+  projectIdMiddleware,
+  async (c) => {
+    const project = c.var.project;
+    return c.json(project);
+  }
+);
