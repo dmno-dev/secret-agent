@@ -2,12 +2,12 @@
 
 import { secretAgentApi } from "@/lib/api";
 import { Project } from "@/lib/types";
-import { Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NewProjectModal } from "./new-project-modal";
+import { ProjectCard } from "./project-card";
 import { ProjectDetails } from "./project-details";
-import { ProjectList } from "./project-list";
 import { ProjectSkeleton } from "./project-skeleton";
 
 export function ProjectsView() {
@@ -68,42 +68,59 @@ export function ProjectsView() {
     return <ProjectSkeleton />;
   }
 
-  if (projects.length === 0) {
+  // Show project details view when a project is selected
+  if (selectedProject) {
     return (
-      <div className="flex items-center justify-center h-[calc(100%-4rem)]">
-        <div className="text-center space-y-4">
-          <div className="text-lg font-mono mb-4">No projects found</div>
-          <button
-            onClick={() => setIsNewProjectModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-bold rounded hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create your first project
-          </button>
-          <NewProjectModal
-            isOpen={isNewProjectModalOpen}
-            onClose={() => setIsNewProjectModalOpen(false)}
-            onCreateProject={handleCreateProject}
-          />
-        </div>
+      <div className="space-y-6">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Projects
+        </button>
+        <ProjectDetails project={selectedProject} />
       </div>
     );
   }
 
+  // Show projects list view
   return (
-    <div className="flex space-x-6 h-[calc(100%-4rem)]">
-      <ProjectList
-        projects={projects}
-        onSelectProject={handleSelectProject}
-        onNewProject={() => setIsNewProjectModalOpen(true)}
-      />
-      {selectedProject ? (
-        <ProjectDetails project={selectedProject} />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-mono">Projects</h2>
+        <button
+          onClick={() => setIsNewProjectModalOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          New Project
+        </button>
+      </div>
+
+      {projects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="text-lg font-mono">No projects found</div>
+          <button
+            onClick={() => setIsNewProjectModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create your first project
+          </button>
+        </div>
       ) : (
-        <div className="flex-1 border border-green-400 rounded p-4 bg-white dark:bg-black">
-          Select a project or create a new one to view details.
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onClick={() => handleSelectProject(project)}
+            />
+          ))}
         </div>
       )}
+
       <NewProjectModal
         isOpen={isNewProjectModalOpen}
         onClose={() => setIsNewProjectModalOpen(false)}
