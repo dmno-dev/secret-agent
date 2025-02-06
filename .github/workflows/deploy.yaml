@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  deploy:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: 'pnpm'
+      - name: Install node deps
+        run: pnpm i
+      - name: Validate config
+        run: pnpm exec dmno resolve
+        env:
+          SECRETAGENT_ENV: production
+          DMNO_VAULT_KEY: ${{ secrets.DMNO_VAULT_KEY }}
+      - name: Enable turborepo build cache
+        uses: rharkor/caching-for-turbo@v1.5
+      - name: Deploy api and website
+        run: pnpm run --filter @secretagent.sh/api deploy:production
+        env:
+          SECRETAGENT_ENV: production
+          DMNO_VAULT_KEY: ${{ secrets.DMNO_VAULT_KEY }}
