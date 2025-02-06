@@ -40,9 +40,8 @@ export function FundProject({ projectId }: { projectId: string }) {
           setAmount('');
           break;
         case 'error':
-          const errorData = status.statusData;
           toast.error('Transaction failed', {
-            description: errorData.message || 'Please try again',
+            description: status.statusData.message || 'Please try again',
           });
           break;
         default:

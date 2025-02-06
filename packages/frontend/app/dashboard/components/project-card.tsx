@@ -1,10 +1,10 @@
-import { useScrambleEffect } from "@/hooks/use-scramble-effect";
-import { Project } from "@/lib/types";
-import NumberFlow from "@number-flow/react";
-import { ArrowRight, Shield } from "lucide-react";
-import { motion } from "motion/react";
-import { formatEther } from "viem";
-import { useBalance } from "wagmi";
+import { useScrambleEffect } from '@/hooks/use-scramble-effect';
+import { Project } from '@/lib/types';
+import NumberFlow from '@number-flow/react';
+import { ArrowRight, Shield } from 'lucide-react';
+import { motion } from 'motion/react';
+import { formatEther } from 'viem';
+import { useBalance } from 'wagmi';
 
 const balanceFormat = {
   minimumFractionDigits: 4,
@@ -26,9 +26,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
     },
   });
 
-  const formattedAddress = `${project.id.slice(0, 6)}...${project.id.slice(
-    -4
-  )}`;
+  const formattedAddress = `${project.id.slice(0, 6)}...${project.id.slice(-4)}`;
 
   return (
     <motion.button
@@ -44,9 +42,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
           <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
-        <div className="text-sm text-muted-foreground font-mono">
-          {formattedAddress}
-        </div>
+        <div className="text-sm text-muted-foreground font-mono">{formattedAddress}</div>
 
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4" />
@@ -62,7 +58,7 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
                   value={parseFloat(formatEther(balance.value))}
                   format={balanceFormat}
                   className="font-medium tabular-nums slashed-zero"
-                />{" "}
+                />{' '}
                 {balance.symbol}
               </span>
             )
