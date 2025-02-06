@@ -7,8 +7,8 @@ const format = {
   useGrouping: true,
 } as const;
 
-export function ApiCallStats() {
-  const { totalCalls, isLoading } = useApiCallStats();
+export function ApiCallStats({ projectId }: { projectId: string }) {
+  const { totalCalls, isLoading } = useApiCallStats(projectId);
 
   if (isLoading) {
     return (

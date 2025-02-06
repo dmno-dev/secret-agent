@@ -18,7 +18,7 @@ function BalanceSkeleton() {
   );
 }
 
-export function BalanceDisplay({ projectAddress }: { projectAddress: string }) {
+export function BalanceDisplay({ projectId }: { projectId: string }) {
   const { address: connectedAddress } = useAccount();
 
   // Fetch connected wallet balance with polling
@@ -34,7 +34,7 @@ export function BalanceDisplay({ projectAddress }: { projectAddress: string }) {
   // Fetch project wallet balance with polling
   const { data: projectBalance, isLoading: isProjectBalanceLoading } =
     useBalance({
-      address: projectAddress as `0x${string}`,
+      address: projectId as `0x${string}`,
       query: {
         refetchInterval: 5000,
       },

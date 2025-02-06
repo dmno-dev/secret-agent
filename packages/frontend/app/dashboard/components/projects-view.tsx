@@ -1,6 +1,7 @@
 "use client";
 
 import { secretAgentApi } from "@/lib/api";
+import { Project } from "@/lib/types";
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,15 +10,8 @@ import { ProjectDetails } from "./project-details";
 import { ProjectList } from "./project-list";
 import { ProjectSkeleton } from "./project-skeleton";
 
-type Project = {
-  id: string;
-  name: string;
-  address: string;
-  balance?: string;
-};
-
 export function ProjectsView() {
-  const [projects, setProjects] = useState<Array<Project>>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const router = useRouter();
@@ -31,7 +25,8 @@ export function ProjectsView() {
     const fetchProjects = async () => {
       try {
         const response = await secretAgentApi.get("projects");
-        setProjects(await response.json());
+        const data = (await response.json()) as Project[];
+        setProjects(data);
       } catch (error) {
         console.error("Error fetching projects:", error);
       } finally {
@@ -56,10 +51,9 @@ export function ProjectsView() {
         },
       });
 
-      const newProject = await response.json();
-
-      setProjects(
-        projects.length === 0 ? [newProject] : [...projects, newProject]
+      const newProject = (await response.json()) as Project;
+      setProjects((prev) =>
+        prev.length === 0 ? [newProject] : [...prev, newProject]
       );
       setIsNewProjectModalOpen(false);
       router.push(`/dashboard?projectId=${newProject.id}`);

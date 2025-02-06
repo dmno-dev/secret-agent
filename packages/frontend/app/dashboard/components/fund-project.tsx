@@ -14,7 +14,7 @@ type TransactionCall = {
   value: bigint;
 };
 
-export function FundProject({ projectAddress }: { projectAddress: string }) {
+export function FundProject({ projectId }: { projectId: string }) {
   const [amount, setAmount] = useState("");
 
   const handleOnStatus = useCallback(
@@ -58,13 +58,13 @@ export function FundProject({ projectAddress }: { projectAddress: string }) {
   // Transaction call configuration
   const calls: TransactionCall[] = [
     {
-      to: projectAddress as `0x${string}`,
+      to: projectId as `0x${string}`,
       value: amount ? parseEther(amount) : BigInt(0),
     },
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 justify-end">
       <div className="relative">
         <input
           type="number"
