@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
+import { MiniLineChart } from './charts/mini-line-chart';
 
 interface ConfigItem {
   id: string;
@@ -10,6 +11,7 @@ interface ConfigItem {
   value?: string;
   createdAt: string;
   lastUsed?: string;
+  usageData: Array<{ date: string; value: number }>;
 }
 
 export function ConfigItems() {
@@ -25,12 +27,30 @@ export function ConfigItems() {
       value: 'sk-1234567890abcdef',
       createdAt: '2024-03-15',
       lastUsed: '2024-03-20',
+      usageData: [
+        { date: '2024-03-14', value: 10 },
+        { date: '2024-03-15', value: 25 },
+        { date: '2024-03-16', value: 15 },
+        { date: '2024-03-17', value: 30 },
+        { date: '2024-03-18', value: 20 },
+        { date: '2024-03-19', value: 35 },
+        { date: '2024-03-20', value: 25 },
+      ],
     },
     {
       id: '2',
       name: 'ANTHROPIC_API_KEY',
       value: 'sk-ant-123456789',
       createdAt: '2024-03-10',
+      usageData: [
+        { date: '2024-03-14', value: 5 },
+        { date: '2024-03-15', value: 15 },
+        { date: '2024-03-16', value: 10 },
+        { date: '2024-03-17', value: 20 },
+        { date: '2024-03-18', value: 15 },
+        { date: '2024-03-19', value: 25 },
+        { date: '2024-03-20', value: 20 },
+      ],
     },
   ]);
 
@@ -49,6 +69,7 @@ export function ConfigItems() {
       name: data.name,
       value: data.shared ? undefined : data.value,
       createdAt: new Date().toISOString().split('T')[0],
+      usageData: [],
     };
 
     setItems((prev) => [...prev, newItem]);
@@ -75,19 +96,22 @@ export function ConfigItems() {
                 )}
                 <span className="font-medium">{item.name}</span>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleShowValue(item.id);
-                }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-              >
-                {showValues[item.id] ? (
-                  <EyeOff className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                ) : (
-                  <Eye className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                )}
-              </button>
+              <div className="flex items-center space-x-4">
+                <MiniLineChart data={item.usageData} />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleShowValue(item.id);
+                  }}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  {showValues[item.id] ? (
+                    <EyeOff className="w-4 h-4 text-gray-500 dark:text-green-400" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-gray-500 dark:text-green-400" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {expandedItem === item.id && (

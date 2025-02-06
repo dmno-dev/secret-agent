@@ -14,7 +14,7 @@ const response = await agent.request<Response>('GET', 'https://api.example.com/d
 
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold mb-4 font-mono">$ vim integration_example.py</h2>
+      <h2 className="text-2xl font-bold mb-4 font-mono">$ vim integration_example.ts</h2>
       <CodeBlock code={code} language="typescript" />
     </section>
   );
