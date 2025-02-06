@@ -1,10 +1,10 @@
 import { Plus } from "lucide-react";
+import { ProjectListItem } from "./project-list-item";
 
 type Project = {
   id: string;
   name: string;
   address: string;
-  balance?: string;
 };
 
 interface ProjectListProps {
@@ -31,16 +31,11 @@ export function ProjectList({
       </div>
       <div className="space-y-2">
         {projects.map((project) => (
-          <button
+          <ProjectListItem
             key={project.id}
+            project={project}
             onClick={() => onSelectProject(project)}
-            className="w-full text-left p-3 border border-gray-200 dark:border-gray-800 rounded hover:border-green-400 dark:hover:border-green-400 transition-colors"
-          >
-            <div className="font-medium">{project.name}</div>
-            <div className="text-sm text-gray-500">
-              {project.balance || "0 ETH"}
-            </div>
-          </button>
+          />
         ))}
       </div>
     </div>
