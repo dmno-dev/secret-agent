@@ -13,7 +13,7 @@ projectRoutes.get('/project-config', async (c) => {
   for (const itemKey in MOCKED_PROJECT_DATA.configItems) {
     const configItem = MOCKED_PROJECT_DATA.configItems[itemKey];
     proxyDomains.push(...configItem.urlPatterns);
-    
+
   }
 
   return c.json({
@@ -31,6 +31,7 @@ projectRoutes.post('/projects', async (c) => {
   return c.json({
     name: 'Super cool project',
     address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    id: '0001',
   });
 });
 
@@ -40,6 +41,7 @@ projectRoutes.get('/projects', async (c) => {
   return c.json({
     name: 'Super cool project',
     address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    id: '0001',
   });
 });
 
@@ -51,6 +53,7 @@ projectRoutes.get('/projects/:projectId', async (c) => {
   return c.json({
     name: 'Super cool project',
     address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    id: projectId,
   });
 });
 
@@ -62,5 +65,6 @@ projectRoutes.patch('/projects/:projectId', async (c) => {
   return c.json({
     name: 'Super cool project',
     address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    id: projectId,
   });
 });

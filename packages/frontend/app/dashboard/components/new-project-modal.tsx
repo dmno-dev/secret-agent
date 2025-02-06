@@ -23,7 +23,7 @@ export function NewProjectModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 dark:bg-black dark:bg-opacity-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 dark:bg-black dark:bg-opacity-50 flex items-center justify-center z-[9999]">
       <div className="bg-white dark:bg-black border border-gray-300 dark:border-green-400 rounded p-6 w-96">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold glow-text">New Project</h2>
