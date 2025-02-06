@@ -21,7 +21,7 @@ export default defineDmnoService({
     SECRETAGENT_ENV: {
       extends: DmnoBaseTypes.enum({
         local: { description: 'local development' },
-        prod: { description: 'production' },
+        production: { description: 'production' },
       }),
       value: 'local',
     },

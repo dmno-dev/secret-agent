@@ -6,7 +6,7 @@ import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
 // TODO: swap to prod url
-const SECRETAGENT_API_URL = 'https://localhost:8881';
+const SECRETAGENT_API_URL = 'https://localhost:8881/api';
 
 type ProjectMetadata = {
   proxyDomains: Array<string>;
@@ -143,7 +143,7 @@ class SecretAgent {
     globalThis.fetch = function patchedFetch(...args: Parameters<typeof fetch>) {
       const [urlOrFetchOpts, fetchOptsArg] = args;
       let url: string;
-      let headers: Record<string, string> = {};
+      const headers: Record<string, string> = {};
       let method: string | undefined;
       let body: any;
       if (urlOrFetchOpts instanceof URL) {

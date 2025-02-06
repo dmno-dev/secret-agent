@@ -8,7 +8,7 @@ import { authRoutes } from './routes/auth';
 import { configItemRoutes } from './routes/config-items';
 import { projectRoutes } from './routes/project';
 
-const app = new Hono<HonoEnv>();
+const app = new Hono<HonoEnv>().basePath('/api');
 
 initCommonMiddlewares(app);
 
