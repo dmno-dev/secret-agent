@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
 import { Hono } from "hono";
+import { HonoEnv } from "../lib/middlewares";
 
-export const authRoutes = new Hono();
+export const authRoutes = new Hono<HonoEnv>();
 
 authRoutes.post('/auth', async (c) => {
   const bodyObj = await c.req.json();
@@ -19,7 +20,6 @@ authRoutes.post('/auth', async (c) => {
   } catch (err) {
     console.log(err);
   }
-
 
   return c.json({ ok: true });
 })

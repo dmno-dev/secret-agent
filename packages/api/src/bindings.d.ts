@@ -1,6 +1,6 @@
 import { Env } from 'hono';
 
-type Environment = Env & {
+type HonoEnvWithCfBindings = Env & {
   Bindings: {
     DB: D1Database;
     // BUCKET: R2Bucket;

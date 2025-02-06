@@ -12,5 +12,7 @@ _end users do not need to do this_
 - pnpm v10.2 (corepack, fnm)
 - you'll need the `DMNO_VAULT_KEY` in your `.dmno/.env.local` - this key decrypts the rest of the secrets
 - `pnpm install`
-- `pnpm db:setup`
+- `pnpm db:reset:local`
+- Generate local ssl certs by running just the frontend (first boot only), it will prompt you for sudo access to add it to your local cert authority
+  - `pnpm --filter @secretagent.sh/frontend dev`
 - `pnpm dev`

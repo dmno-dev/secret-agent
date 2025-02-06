@@ -1,51 +1,24 @@
 import 'dmno/injector-standalone/edge-auto';
 import { Hono } from 'hono'
-import { cors } from 'hono/cors'
 
-import { Environment } from "./bindings";
+import { HonoEnv, initCommonMiddlewares } from './lib/middlewares';
 import { authRoutes } from './routes/auth';
-import { proxyRoutes } from './routes/proxy';
+import { agentLibRoutes } from './routes/agent-lib';
 import { projectRoutes } from './routes/project';
-import { initDbConnect } from './db';
-import { users } from './db/schema';
+import { configItemRoutes } from './routes/config-items';
+import { agentRoutes } from './routes/agents';
 
-const app = new Hono<Environment>();
+const app = new Hono<HonoEnv>();
 
-app.use('/*', cors({
-  origin: DMNO_CONFIG.SECRETAGENT_WEB_URL,
-  // have to be very permissive since we are proxying 
-  allowHeaders: ['*'],
-  allowMethods: ['*'],
-  // exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
-  maxAge: 600,
-  credentials: true,
-}))
+initCommonMiddlewares(app);
 
 app.get('/', async (c) => {
   return c.json({ apiStatus: 'ok' });
 });
-
-
-app.get('/add-user', async (c) => {
-  const db = initDbConnect(c.env.DB);
-  const newUser = await db.insert(users).values({
-    id: '0x7f448FA8cc5db07E8e4eF382B6453b91Bd9B05a6',
-    email: 'theo@dmno.dev',
-  })
-  console.log(newUser);
-  return c.json({ ok: true })
-});
-
-app.get('/users', async (c) => {
-  const db = initDbConnect(c.env.DB);
-  const allUsers = await db.select().from(users).all();
-  console.log(allUsers);
-
-  return c.text("Hello Hono!");
-});
-
 app.route('/', authRoutes);
-app.route('/', proxyRoutes);
+app.route('/', agentLibRoutes);
 app.route('/', projectRoutes);
+app.route('/', configItemRoutes);
+app.route('/', agentRoutes);
 
 export default app

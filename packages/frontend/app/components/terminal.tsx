@@ -1,5 +1,6 @@
 "use client";
 
+import { AUTH_KEY_LOCALSTORAGE_KEY } from "@/lib/api";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -18,6 +19,11 @@ export function Terminal({ children }: TerminalProps) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
 
+  function logout() {
+    disconnect();
+    window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
+  }
+
   return (
     <div className="bg-white dark:bg-black text-gray-900 dark:text-green-400 p-4 transition-colors duration-100">
       <div className="max-w-6xl mx-auto terminal-window rounded-lg overflow-hidden border border-gray-300 dark:border-green-400">
@@ -26,7 +32,7 @@ export function Terminal({ children }: TerminalProps) {
             <div className="flex space-x-2">
               <div
                 className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-600 transition-colors"
-                onClick={() => isConnected && disconnect()}
+                onClick={() => isConnected && logout()}
                 title={isConnected ? "Disconnect wallet" : ""}
               ></div>
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>

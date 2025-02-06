@@ -3,7 +3,7 @@
   "name": "my-app",
   "main": "src/index.ts",
   "compatibility_date": "2025-02-03",
-  "node_compat": true,
+  "compatibility_flags": ["nodejs_compat"],
   "env": {
     "local": {
       "d1_databases": [{

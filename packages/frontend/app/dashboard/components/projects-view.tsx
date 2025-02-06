@@ -7,6 +7,7 @@ import { NewProjectModal } from "./new-project-modal";
 import { ProjectDetails } from "./project-details";
 import { ProjectList } from "./project-list";
 import { ProjectSkeleton } from "./project-skeleton";
+import { secretAgentApi } from "@/lib/api";
 
 type Project = {
   id: string;
@@ -31,13 +32,8 @@ export function ProjectsView() {
       // sleep for 2 seconds
       await new Promise((resolve) => setTimeout(resolve, 2000));
       try {
-        console.log(`${DMNO_PUBLIC_CONFIG.SECRETAGENT_API_URL}/projects`);
-        const response = await fetch(
-          `${DMNO_PUBLIC_CONFIG.SECRETAGENT_API_URL}/projects`
-        );
-        if (!response.ok) throw new Error("Failed to fetch projects");
-        const data = await response.json();
-        setProjects(Array.isArray(data) ? data : [data]); // Handle both array and single object response
+        const response = await secretAgentApi.get('projects')
+        setProjects(await response.json())
       } catch (error) {
         console.error("Error fetching projects:", error);
       } finally {
@@ -55,18 +51,13 @@ export function ProjectsView() {
   const handleCreateProject = async (projectName: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `${DMNO_PUBLIC_CONFIG.SECRETAGENT_API_URL}/projects`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name: projectName }),
-        }
-      );
 
-      if (!response.ok) throw new Error("Failed to create project");
+      const response = await secretAgentApi.post('projects', {
+        json: {
+          name: projectName
+        },
+      });
+      
       const newProject = await response.json();
 
       setProjects(
