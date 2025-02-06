@@ -1,7 +1,7 @@
-import NumberFlow from "@number-flow/react";
-import { AlertTriangle } from "lucide-react";
-import { formatEther } from "viem";
-import { useBalance } from "wagmi";
+import NumberFlow from '@number-flow/react';
+import { AlertTriangle } from 'lucide-react';
+import { formatEther } from 'viem';
+import { useBalance } from 'wagmi';
 
 const LOW_BALANCE_THRESHOLD = 0.1; // ETH
 
@@ -29,9 +29,7 @@ export function ProjectListItem({ project, onClick }: ProjectListItemProps) {
     },
   });
 
-  const balanceValue = projectBalance
-    ? parseFloat(formatEther(projectBalance.value))
-    : 0;
+  const balanceValue = projectBalance ? parseFloat(formatEther(projectBalance.value)) : 0;
   const isLowBalance = balanceValue < LOW_BALANCE_THRESHOLD;
 
   return (
@@ -52,14 +50,14 @@ export function ProjectListItem({ project, onClick }: ProjectListItemProps) {
           ) : (
             <span
               className={`text-sm flex items-center gap-1 ${
-                isLowBalance ? "text-yellow-500" : "text-gray-500"
+                isLowBalance ? 'text-yellow-500' : 'text-gray-500'
               }`}
             >
               <NumberFlow
                 value={balanceValue}
                 format={balanceFormat}
                 className="font-semibold tabular-nums slashed-zero"
-              />{" "}
+              />{' '}
               {projectBalance?.symbol}
             </span>
           )}

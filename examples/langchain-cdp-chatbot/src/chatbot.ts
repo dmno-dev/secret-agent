@@ -1,4 +1,4 @@
-import 'dmno/auto-inject-globals'
+import 'dmno/auto-inject-globals';
 
 import {
   AgentKit,
@@ -9,18 +9,18 @@ import {
   cdpApiActionProvider,
   cdpWalletActionProvider,
   pythActionProvider,
-} from "@coinbase/agentkit";
-import { getLangChainTools } from "@coinbase/agentkit-langchain";
-import { HumanMessage } from "@langchain/core/messages";
-import { MemorySaver } from "@langchain/langgraph";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { ChatOpenAI } from "@langchain/openai";
-import * as fs from "fs";
-import * as readline from "readline";
+} from '@coinbase/agentkit';
+import { getLangChainTools } from '@coinbase/agentkit-langchain';
+import { HumanMessage } from '@langchain/core/messages';
+import { MemorySaver } from '@langchain/langgraph';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
+import { ChatOpenAI } from '@langchain/openai';
+import * as fs from 'fs';
+import * as readline from 'readline';
 import SecretAgent from 'secretagent.sh';
 
 // Configure a file to persist the agent's CDP MPC Wallet Data
-const WALLET_DATA_FILE = "../wallet_data.txt";
+const WALLET_DATA_FILE = '../wallet_data.txt';
 
 // ideally set up the tracer more explicitly?
 // process.env.LANGSMITH_TRACING="true";
@@ -36,7 +36,7 @@ async function initializeAgent() {
     // Initialize LLM
     const llm = new ChatOpenAI({
       model: 'gpt-4o-mini',
-      apiKey: "{{LLM_KEY}}" // will be replaced/injected in proxy
+      apiKey: '{{LLM_KEY}}', // will be replaced/injected in proxy
     });
 
     let walletDataStr: string | null = null;
@@ -44,9 +44,9 @@ async function initializeAgent() {
     // Read existing wallet data if available
     if (fs.existsSync(WALLET_DATA_FILE)) {
       try {
-        walletDataStr = fs.readFileSync(WALLET_DATA_FILE, "utf8");
+        walletDataStr = fs.readFileSync(WALLET_DATA_FILE, 'utf8');
       } catch (error) {
-        console.error("Error reading wallet data:", error);
+        console.error('Error reading wallet data:', error);
         // Continue without wallet data
       }
     }
@@ -56,7 +56,7 @@ async function initializeAgent() {
       apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
       apiKeyPrivateKey: DMNO_CONFIG.CDP_API_KEY_PRIVATE_KEY,
       cdpWalletData: walletDataStr || undefined,
-      networkId: DMNO_CONFIG.NETWORK_ID
+      networkId: DMNO_CONFIG.NETWORK_ID,
     };
 
     const walletProvider = await CdpWalletProvider.configureWithWallet(config);
@@ -97,7 +97,7 @@ async function initializeAgent() {
 
     // Store buffered conversation history in memory
     const memory = new MemorySaver();
-    const agentConfig = { configurable: { thread_id: "CDP AgentKit Chatbot Example!" } };
+    const agentConfig = { configurable: { thread_id: 'CDP AgentKit Chatbot Example!' } };
 
     // Create React Agent using the LLM and CDP AgentKit tools
     const agent = createReactAgent({
@@ -117,11 +117,9 @@ async function initializeAgent() {
         `,
     });
 
-    
-
     return { agent, config: agentConfig };
   } catch (error) {
-    console.error("Failed to initialize agent:", error);
+    console.error('Failed to initialize agent:', error);
     throw error; // Re-throw to be handled by caller
   }
 }
@@ -135,7 +133,7 @@ async function initializeAgent() {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function runAutonomousMode(agent: any, config: any, interval = 10) {
-  console.log("Starting autonomous mode...");
+  console.log('Starting autonomous mode...');
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -148,18 +146,18 @@ Choose an action or set of actions and execute it that highlights your abilities
       const stream = await agent.stream({ messages: [new HumanMessage(thought)] }, config);
 
       for await (const chunk of stream) {
-        if ("agent" in chunk) {
+        if ('agent' in chunk) {
           console.log(chunk.agent.messages[0].content);
-        } else if ("tools" in chunk) {
+        } else if ('tools' in chunk) {
           console.log(chunk.tools.messages[0].content);
         }
-        console.log("-------------------");
+        console.log('-------------------');
       }
 
-      await new Promise(resolve => setTimeout(resolve, interval * 1000));
+      await new Promise((resolve) => setTimeout(resolve, interval * 1000));
     } catch (error) {
       if (error instanceof Error) {
-        console.error("Error:", error.message);
+        console.error('Error:', error.message);
       }
       process.exit(1);
     }
@@ -182,31 +180,31 @@ async function runChatMode(agent: any, config: any) {
   });
 
   const question = (prompt: string): Promise<string> =>
-    new Promise(resolve => rl.question(prompt, resolve));
+    new Promise((resolve) => rl.question(prompt, resolve));
 
   try {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const userInput = await question("\nPrompt: ");
+      const userInput = await question('\nPrompt: ');
 
-      if (userInput.toLowerCase() === "exit") {
+      if (userInput.toLowerCase() === 'exit') {
         break;
       }
 
       const stream = await agent.stream({ messages: [new HumanMessage(userInput)] }, config);
 
       for await (const chunk of stream) {
-        if ("agent" in chunk) {
+        if ('agent' in chunk) {
           console.log(chunk.agent.messages[0].content);
-        } else if ("tools" in chunk) {
+        } else if ('tools' in chunk) {
           console.log(chunk.tools.messages[0].content);
         }
-        console.log("-------------------");
+        console.log('-------------------');
       }
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error:", error.message);
+      console.error('Error:', error.message);
     }
     process.exit(1);
   } finally {
@@ -219,33 +217,33 @@ async function runChatMode(agent: any, config: any) {
  *
  * @returns Selected mode
  */
-async function chooseMode(): Promise<"chat" | "auto"> {
+async function chooseMode(): Promise<'chat' | 'auto'> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   const question = (prompt: string): Promise<string> =>
-    new Promise(resolve => rl.question(prompt, resolve));
+    new Promise((resolve) => rl.question(prompt, resolve));
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    console.log("\nAvailable modes:");
-    console.log("1. chat    - Interactive chat mode");
-    console.log("2. auto    - Autonomous action mode");
+    console.log('\nAvailable modes:');
+    console.log('1. chat    - Interactive chat mode');
+    console.log('2. auto    - Autonomous action mode');
 
-    const choice = (await question("\nChoose a mode (enter number or name): "))
+    const choice = (await question('\nChoose a mode (enter number or name): '))
       .toLowerCase()
       .trim();
 
-    if (choice === "1" || choice === "chat") {
+    if (choice === '1' || choice === 'chat') {
       rl.close();
-      return "chat";
-    } else if (choice === "2" || choice === "auto") {
+      return 'chat';
+    } else if (choice === '2' || choice === 'auto') {
       rl.close();
-      return "auto";
+      return 'auto';
     }
-    console.log("Invalid choice. Please try again.");
+    console.log('Invalid choice. Please try again.');
   }
 }
 
@@ -258,14 +256,14 @@ async function main() {
     // const mode = await chooseMode();
     const mode = 'chat';
 
-    if (mode === "chat") {
+    if (mode === 'chat') {
       await runChatMode(agent, config);
     } else {
       await runAutonomousMode(agent, config);
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error:", error.message);
+      console.error('Error:', error.message);
     }
     process.exit(1);
   }

@@ -1,43 +1,35 @@
-"use client";
+'use client';
 
-import {
-  BarChart,
-  Coins,
-  Key,
-  Lock,
-  LucideIcon,
-  Shield,
-  Zap,
-} from "lucide-react";
-import { useScrambleEffect } from "../../hooks/use-scramble-effect";
+import { BarChart, Coins, Key, Lock, LucideIcon, Shield, Zap } from 'lucide-react';
+import { useScrambleEffect } from '../../hooks/use-scramble-effect';
 
 const features = [
   {
     icon: Shield,
-    title: "Proxy Service",
-    description: "Hide API keys from agents",
+    title: 'Proxy Service',
+    description: 'Hide API keys from agents',
   },
   {
     icon: Zap,
-    title: "Metered Usage",
-    description: "Pay-as-you-go with crypto",
+    title: 'Metered Usage',
+    description: 'Pay-as-you-go with crypto',
   },
   {
     icon: Key,
-    title: "Instant Revocation",
-    description: "Deadman switch for access control",
+    title: 'Instant Revocation',
+    description: 'Deadman switch for access control',
   },
   {
     icon: Coins,
-    title: "Self-Funding",
-    description: "Autonomous agent capabilities",
+    title: 'Self-Funding',
+    description: 'Autonomous agent capabilities',
   },
   {
     icon: BarChart,
-    title: "Usage Tracking",
-    description: "Monitor and control budgets",
+    title: 'Usage Tracking',
+    description: 'Monitor and control budgets',
   },
-  { icon: Lock, title: "Key Rotation", description: "Automatic and seamless" },
+  { icon: Lock, title: 'Key Rotation', description: 'Automatic and seamless' },
 ];
 
 function FeatureItem({
@@ -51,10 +43,8 @@ function FeatureItem({
 }) {
   const { scrambledText: scrambledTitle, startScramble: startTitleScramble } =
     useScrambleEffect(title);
-  const {
-    scrambledText: scrambledDescription,
-    startScramble: startDescriptionScramble,
-  } = useScrambleEffect(description);
+  const { scrambledText: scrambledDescription, startScramble: startDescriptionScramble } =
+    useScrambleEffect(description);
 
   return (
     <div

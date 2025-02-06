@@ -15,9 +15,7 @@
     "removeComments": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "customConditions": [ "ts-src" ],
+    "customConditions": ["ts-src"]
   },
-  "include": [
-    "**/*.ts",
-  ]
+  "include": ["**/*.ts"]
 }

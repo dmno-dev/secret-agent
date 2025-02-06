@@ -1,14 +1,18 @@
 import https from 'https';
 
-const req = https.request('https://localhost:8787/api/llm', {
-  rejectUnauthorized: false,
-  // agent: false
-  method: 'post',
-}, (res) => {
-  console.log(res);
-});
+const req = https.request(
+  'https://localhost:8787/api/llm',
+  {
+    rejectUnauthorized: false,
+    // agent: false
+    method: 'post',
+  },
+  (res) => {
+    console.log(res);
+  }
+);
 
-req.on('error', function(e) {
+req.on('error', function (e) {
   console.log('problem with request: ' + e.message);
 });
 

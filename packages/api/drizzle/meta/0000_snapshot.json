@@ -57,22 +57,15 @@
           "name": "config_items_project_id_projects_id_fk",
           "tableFrom": "config_items",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "config_items_project_id_key_pk": {
-          "columns": [
-            "project_id",
-            "key"
-          ],
+          "columns": ["project_id", "key"],
           "name": "config_items_project_id_key_pk"
         }
       },
@@ -126,22 +119,15 @@
           "name": "project_agents_project_id_projects_id_fk",
           "tableFrom": "project_agents",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "project_agents_project_id_id_pk": {
-          "columns": [
-            "project_id",
-            "id"
-          ],
+          "columns": ["project_id", "id"],
           "name": "project_agents_project_id_id_pk"
         }
       },
@@ -194,12 +180,8 @@
           "name": "projects_owned_by_user_id_users_id_fk",
           "tableFrom": "projects",
           "tableTo": "users",
-          "columnsFrom": [
-            "owned_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owned_by_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

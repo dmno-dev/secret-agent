@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { X } from "lucide-react";
-import { useState } from "react";
+import { X } from 'lucide-react';
+import { useState } from 'react';
 
 export function NewProjectModal({
   isOpen,
@@ -12,12 +12,12 @@ export function NewProjectModal({
   onClose: () => void;
   onCreateProject: (projectName: string) => void;
 }) {
-  const [projectName, setProjectName] = useState("");
+  const [projectName, setProjectName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCreateProject(projectName);
-    setProjectName("");
+    setProjectName('');
   };
 
   if (!isOpen) return null;

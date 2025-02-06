@@ -1,24 +1,18 @@
-"use client";
+'use client';
 
-import { ThemeProvider, useTheme } from "next-themes";
+import { ThemeProvider, useTheme } from 'next-themes';
 
-import { config } from "@/config/wagmi";
+import { config } from '@/config/wagmi';
 
-import { OnchainKitProvider } from "@coinbase/onchainkit";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { WagmiProvider } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { OnchainKitProvider } from '@coinbase/onchainkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { WagmiProvider } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
 
-import { AUTH_KEY_LOCALSTORAGE_KEY } from "@/lib/api";
-import { toast } from "sonner";
-import { useAccount, useSignMessage } from "wagmi";
+import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
+import { toast } from 'sonner';
+import { useAccount, useSignMessage } from 'wagmi';
 
 type AuthContextType = {
   authToken: string | undefined;
@@ -46,20 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   } = useSignMessage();
 
   useEffect(() => {
-    const tokenFromLocalStorage = window?.localStorage?.getItem(
-      AUTH_KEY_LOCALSTORAGE_KEY
-    );
+    const tokenFromLocalStorage = window?.localStorage?.getItem(AUTH_KEY_LOCALSTORAGE_KEY);
     if (tokenFromLocalStorage) setAuthToken(tokenFromLocalStorage);
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    console.log("walletIsConnected", walletIsConnected);
-    console.log("authToken", authToken);
+    console.log('walletIsConnected', walletIsConnected);
+    console.log('authToken', authToken);
 
     if (walletIsConnected && !authToken) {
       signMessage({
-        message: ["You are logging into SecretAgent.sh"].join("\n"),
+        message: ['You are logging into SecretAgent.sh'].join('\n'),
       });
     }
   }, [walletIsConnected, signMessage, authToken]);
@@ -68,13 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (signMessageData) {
       setAuthToken(signMessageData);
       window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, signMessageData);
-      toast.success("Successfully authenticated");
+      toast.success('Successfully authenticated');
     }
   }, [signMessageData]);
 
   useEffect(() => {
     if (signMessageError && !authToken) {
-      toast.error("Failed to authenticate: " + signMessageError.message);
+      toast.error('Failed to authenticate: ' + signMessageError.message);
     }
   }, [signMessageError, authToken]);
 
@@ -116,11 +108,11 @@ function ProvidersInner(props: { children: ReactNode }) {
           chain={baseSepolia} // add baseSepolia for testing
           config={{
             appearance: {
-              theme: resolvedTheme as "dark" | "light",
-              name: "custom",
+              theme: resolvedTheme as 'dark' | 'light',
+              name: 'custom',
             },
             wallet: {
-              display: "modal",
+              display: 'modal',
             },
           }}
         >

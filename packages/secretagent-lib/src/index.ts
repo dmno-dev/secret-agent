@@ -1,31 +1,29 @@
 import ky, { HTTPError, KyInstance } from 'ky';
 import { Agent } from 'undici';
-import https from 'node:https'
+import https from 'node:https';
 import { setTimeout } from 'node:timers/promises';
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
 // TODO: swap to prod url
-const SECRETAGENT_API_URL = 'https://localhost:8881'
+const SECRETAGENT_API_URL = 'https://localhost:8881';
 
 type ProjectMetadata = {
-  proxyDomains: Array<string>,
-}
+  proxyDomains: Array<string>;
+};
 
 type ProjectInitSettings = {
   /** address used to identify this SecretAgent project - also holds the funds which pay for usage */
-  projectId: string,
+  projectId: string;
   /** wallet address of this agent, will be used to identify it */
-  agentId: string,
+  agentId: string;
   /** name/label for this agent, shown in the dashbaoard */
-  agentLabel: string,
+  agentLabel: string;
   /** method that signs a message using agent's wallet/keys  */
-  signMessage: (m: string) => Promise<string>
+  signMessage: (m: string) => Promise<string>;
   /** max number of times to retry init if agent status is pending (optional, defaults to 10) */
-  maxRetryCount?: number,
-}
-
-
+  maxRetryCount?: number;
+};
 
 class SecretAgent {
   initSettings!: ProjectInitSettings;
@@ -35,22 +33,22 @@ class SecretAgent {
   constructor() {
     this.api = ky.extend({
       prefixUrl: SECRETAGENT_API_URL,
-    
+
       // need to ignore self-signed cert error if connecting to localhost
-      ...SECRETAGENT_API_URL.startsWith('https://localhost:') && {
+      ...(SECRETAGENT_API_URL.startsWith('https://localhost:') && {
         // @ts-ignore
         dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
-      },
-      
+      }),
+
       hooks: {
         beforeRequest: [
           async (request) => {
             // await this.regenerateAuthHeader();
             request.headers.set('sa-agent-auth', this.agentAuthHeader);
             request.headers.set('sa-agent-label', this.initSettings.agentLabel);
-          }
-        ]
-      }
+          },
+        ],
+      },
     });
   }
 
@@ -73,7 +71,9 @@ class SecretAgent {
         if (err instanceof HTTPError) {
           const errBody = await err.response.json();
           if (errBody?.status === 'pending') {
-            console.log(`This agent is not yet authorized for this project. Admin must approve it in the dashboard (retry #${retryCount + 1}/${maxRetryCount})`);
+            console.log(
+              `This agent is not yet authorized for this project. Admin must approve it in the dashboard (retry #${retryCount + 1}/${maxRetryCount})`
+            );
             await setTimeout(10000);
           } else {
             throw err;
@@ -82,8 +82,8 @@ class SecretAgent {
           throw err;
         }
       }
-    }  
-    
+    }
+
     this.enableHttpsInterceptor();
     this.enableFetchInterceptor();
   }
@@ -104,14 +104,14 @@ class SecretAgent {
     const singleton = this;
 
     // @ts-ignore
-    https.request = function patchedHttpsRequest (...args: Parameters<typeof https.request>) {
+    https.request = function patchedHttpsRequest(...args: Parameters<typeof https.request>) {
       const [url, options, callback] = normalizeClientRequestArgs('https:', args);
-  
+
       if (!checkUrlInPatternList(url.href, singleton.projectMetadata.proxyDomains)) {
         // console.log(`> https req ${url} (no proxy)`);
         return originalHttpsRequest(...args);
       }
-      
+
       // console.log(`> https req ${url} (proxy!)`);
       // delete url related config from options
       delete options.host;
@@ -121,20 +121,21 @@ class SecretAgent {
 
       const headers = options.headers || {};
       // pass along original request URL and method as headers
-      headers['sa-original-url'] = url.href
+      headers['sa-original-url'] = url.href;
       headers['sa-original-method'] = options.method;
       headers['sa-agent-auth'] = singleton.agentAuthHeader;
 
       return originalHttpsRequest(
         // call our proxy url instead
-        `${SECRETAGENT_API_URL}/agent/proxy`, {
+        `${SECRETAGENT_API_URL}/agent/proxy`,
+        {
           ...options,
           headers,
           rejectUnauthorized: false,
           method: 'POST',
         }
       );
-    }
+    };
   }
   private enableFetchInterceptor() {
     const singleton = this;
@@ -160,7 +161,7 @@ class SecretAgent {
         method = fetchOptsArg.method;
         body = fetchOptsArg.body;
       }
-    
+
       if (!checkUrlInPatternList(url, singleton.projectMetadata.proxyDomains)) {
         // console.log(`> fetch ${url} (no proxy)`);
         return originalFetch(...args);
@@ -177,15 +178,14 @@ class SecretAgent {
         method,
         body,
 
-        ...SECRETAGENT_API_URL.startsWith('https://localhost:') && {
+        ...(SECRETAGENT_API_URL.startsWith('https://localhost:') && {
           // @ts-ignore
           dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
-        },
-        
+        }),
       });
-    }
+    };
   }
 }
 
-// main export will be a singleton 
+// main export will be a singleton
 export default new SecretAgent();

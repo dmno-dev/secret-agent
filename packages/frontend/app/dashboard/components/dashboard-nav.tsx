@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { Address, EthBalance, Identity } from "@coinbase/onchainkit/identity";
+import { Address, EthBalance, Identity } from '@coinbase/onchainkit/identity';
 import {
   ConnectWallet,
   Wallet,
   WalletDropdown,
   WalletDropdownDisconnect,
   WalletDropdownLink,
-} from "@coinbase/onchainkit/wallet";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+} from '@coinbase/onchainkit/wallet';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export function DashboardNav() {
   const [mounted, setMounted] = useState(false);
@@ -23,9 +23,9 @@ export function DashboardNav() {
   }
 
   const activeNavLinkStyles =
-    "flex items-center space-x-2 px-3 py-2 rounded bg-gray-200 text-gray-900 dark:bg-green-800 dark:text-green-200";
+    'flex items-center space-x-2 px-3 py-2 rounded bg-gray-200 text-gray-900 dark:bg-green-800 dark:text-green-200';
   const walletButtonStyles =
-    "flex items-center space-x-2 px-3 py-2 rounded bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors";
+    'flex items-center space-x-2 px-3 py-2 rounded bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors';
 
   return (
     <nav className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

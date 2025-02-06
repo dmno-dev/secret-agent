@@ -1,6 +1,6 @@
-import { ethers } from "ethers";
-import { Hono } from "hono";
-import { HonoEnv } from "../lib/middlewares";
+import { ethers } from 'ethers';
+import { Hono } from 'hono';
+import { HonoEnv } from '../lib/middlewares';
 
 export const authRoutes = new Hono<HonoEnv>();
 
@@ -15,11 +15,11 @@ authRoutes.post('/auth', async (c) => {
     const verifiedAddress = await ethers.verifyMessage(message, signature);
     console.log('signer address', verifiedAddress, address);
     if (verifiedAddress !== address) {
-      return c.json({ error: 'address does not match'}, 401);
+      return c.json({ error: 'address does not match' }, 401);
     }
   } catch (err) {
     console.log(err);
   }
 
   return c.json({ ok: true });
-})
+});
