@@ -1,28 +1,49 @@
-import { BarChart, Shield, Wallet } from "lucide-react";
-import { ConfigItems } from "./config-items";
+import { Project } from "@/lib/types";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
 import { AgentsList } from "./agents-list";
+import { ApiCallStats } from "./api-call-stats";
+import { BalanceDisplay } from "./balance-display";
+import { ConfigItems } from "./config-items";
+import { FundProject } from "./fund-project";
 
-export function ProjectDetails({
-  project,
-}: {
-  project: { name: string; id: string };
-}) {
+interface ProjectDetailsProps {
+  project: Project;
+}
+
+export function ProjectDetails({ project }: ProjectDetailsProps) {
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(project.id);
+    toast.success("Address copied to clipboard");
+  };
+
+  const formattedAddress = `${project.id.slice(0, 6)}...${project.id.slice(
+    -4
+  )}`;
+
   return (
-    <div className="flex-1 border border-gray-300 dark:border-green-400 rounded p-4 bg-white dark:bg-black">
-      <h2 className="text-2xl font-bold mb-4 glow-text">{project.name}</h2>
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Wallet size={20} className="text-gray-700 dark:text-green-400" />
-          <span>Project ID: {project.id}</span>
+    <div className="flex-1 border border-green-400 rounded p-4 bg-white dark:bg-black">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-mono mb-2">{project.name}</h2>
+          <div className="text-sm text-muted-foreground font-mono space-x-2">
+            <span>Address: {formattedAddress}</span>
+            <button
+              onClick={handleCopyAddress}
+              className="hover:text-primary transition-colors"
+              title="Copy address"
+            >
+              <Copy className="w-3.5 h-3.5 inline" />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Shield size={20} className="text-gray-700 dark:text-green-400" />
-          <span>Balance: 0.5 ETH</span>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <BalanceDisplay projectId={project.id} />
+          <FundProject projectId={project.id} />
         </div>
-        <div className="flex items-center space-x-2">
-          <BarChart size={20} className="text-gray-700 dark:text-green-400" />
-          <span>API Calls: 1,234</span>
-        </div>
+
+        <ApiCallStats projectId={project.id} />
       </div>
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-2 glow-text">Policy Rules</h3>
@@ -31,9 +52,6 @@ export function ProjectDetails({
           <li>Allowed APIs: OpenAI, Anthropic</li>
         </ul>
       </div>
-      <button className="mt-6 border border-gray-300 dark:border-green-400 rounded p-2 hover:bg-gray-100 dark:hover:bg-green-800 hover:text-gray-900 dark:hover:text-green-200 transition-colors">
-        Fund Project
-      </button>
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
         <ConfigItems />

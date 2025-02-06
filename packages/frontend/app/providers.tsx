@@ -3,11 +3,96 @@
 import { ThemeProvider, useTheme } from "next-themes";
 
 import { config } from "@/config/wagmi";
+
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { WagmiProvider } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
+
+import { AUTH_KEY_LOCALSTORAGE_KEY } from "@/lib/api";
+import { toast } from "sonner";
+import { useAccount, useSignMessage } from "wagmi";
+
+type AuthContextType = {
+  authToken: string | undefined;
+  isLoading: boolean;
+};
+
+const AuthContext = createContext<AuthContextType>({
+  authToken: undefined,
+  isLoading: true,
+});
+
+export const useAuth = () => useContext(AuthContext);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  const [authToken, setAuthToken] = useState<string>();
+  const { isConnected: walletIsConnected } = useAccount();
+
+  const {
+    data: signMessageData,
+    error: signMessageError,
+    isPending: signMessageIsPending,
+
+    signMessage,
+  } = useSignMessage();
+
+  useEffect(() => {
+    const tokenFromLocalStorage = window?.localStorage?.getItem(
+      AUTH_KEY_LOCALSTORAGE_KEY
+    );
+    if (tokenFromLocalStorage) setAuthToken(tokenFromLocalStorage);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    console.log("walletIsConnected", walletIsConnected);
+    console.log("authToken", authToken);
+
+    if (walletIsConnected && !authToken) {
+      signMessage({
+        message: ["You are logging into SecretAgent.sh"].join("\n"),
+      });
+    }
+  }, [walletIsConnected, signMessage, authToken]);
+
+  useEffect(() => {
+    if (signMessageData) {
+      setAuthToken(signMessageData);
+      window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, signMessageData);
+      toast.success("Successfully authenticated");
+    }
+  }, [signMessageData]);
+
+  useEffect(() => {
+    if (signMessageError && !authToken) {
+      toast.error("Failed to authenticate: " + signMessageError.message);
+    }
+  }, [signMessageError, authToken]);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        authToken,
+        isLoading: signMessageIsPending || !mounted,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -39,7 +124,7 @@ function ProvidersInner(props: { children: ReactNode }) {
             },
           }}
         >
-          {props.children}
+          <AuthProvider>{props.children}</AuthProvider>
         </OnchainKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

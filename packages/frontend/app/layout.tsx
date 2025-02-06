@@ -3,6 +3,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { type ReactNode } from "react";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -21,6 +22,7 @@ export default function RootLayout(props: { children: ReactNode }) {
     >
       <body className={`${GeistSans.className}, ${GeistMono.className}`}>
         <Providers>{props.children}</Providers>
+        <Toaster theme="system" position="top-right" closeButton richColors />
       </body>
     </html>
   );

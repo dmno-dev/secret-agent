@@ -1,5 +1,7 @@
 "use client";
 
+import { secretAgentApi } from "@/lib/api";
+import { Project } from "@/lib/types";
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -7,17 +9,9 @@ import { NewProjectModal } from "./new-project-modal";
 import { ProjectDetails } from "./project-details";
 import { ProjectList } from "./project-list";
 import { ProjectSkeleton } from "./project-skeleton";
-import { secretAgentApi } from "@/lib/api";
-
-type Project = {
-  id: string;
-  name: string;
-  address: string;
-  balance?: string;
-};
 
 export function ProjectsView() {
-  const [projects, setProjects] = useState<Array<Project>>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const router = useRouter();
@@ -29,11 +23,10 @@ export function ProjectsView() {
   // Fetch projects on component mount
   useEffect(() => {
     const fetchProjects = async () => {
-      // sleep for 2 seconds
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       try {
-        const response = await secretAgentApi.get('projects')
-        setProjects(await response.json())
+        const response = await secretAgentApi.get("projects");
+        const data = (await response.json()) as Project[];
+        setProjects(data);
       } catch (error) {
         console.error("Error fetching projects:", error);
       } finally {
@@ -52,16 +45,15 @@ export function ProjectsView() {
     try {
       setIsLoading(true);
 
-      const response = await secretAgentApi.post('projects', {
+      const response = await secretAgentApi.post("projects", {
         json: {
-          name: projectName
+          name: projectName,
         },
       });
-      
-      const newProject = await response.json();
 
-      setProjects(
-        projects.length === 0 ? [newProject] : [...projects, newProject]
+      const newProject = (await response.json()) as Project;
+      setProjects((prev) =>
+        prev.length === 0 ? [newProject] : [...prev, newProject]
       );
       setIsNewProjectModalOpen(false);
       router.push(`/dashboard?projectId=${newProject.id}`);
