@@ -1,5 +1,5 @@
-import { DmnoBaseTypes, defineDmnoService, pick, pickFromSchemaObject, switchBy } from 'dmno';
-import { CloudflareWranglerEnvSchema, DmnoWranglerEnvSchema } from '@dmno/cloudflare-platform';
+import { DmnoWranglerEnvSchema } from '@dmno/cloudflare-platform';
+import { defineDmnoService, pick, pickFromSchemaObject, switchBy } from 'dmno';
 
 export default defineDmnoService({
   name: 'api',
@@ -9,7 +9,7 @@ export default defineDmnoService({
     SECRETAGENT_API_URL: {
       extends: 'url',
       value: switchBy('SECRETAGENT_ENV', {
-        local: () => DMNO_CONFIG.WRANGLER_DEV_URL,
+        local: () => `${DMNO_CONFIG.WRANGLER_DEV_URL}/api`,
         production: 'https://secretagent.sh/api',
       }),
       required: true,

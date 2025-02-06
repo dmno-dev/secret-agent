@@ -86,7 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 1000, // 5 seconds
+      refetchInterval: 10 * 1000, // 10 seconds
+    },
+  },
+});
 
 function ProvidersInner(props: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
@@ -105,7 +112,7 @@ function ProvidersInner(props: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <OnchainKitProvider
           apiKey={DMNO_PUBLIC_CONFIG.ONCHAINKIT_API_KEY}
-          chain={baseSepolia} // add baseSepolia for testing
+          chain={baseSepolia}
           config={{
             appearance: {
               theme: resolvedTheme as 'dark' | 'light',
