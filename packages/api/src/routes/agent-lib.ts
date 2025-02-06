@@ -1,16 +1,18 @@
-import { Hono } from "hono";
-import { HonoEnv } from "../lib/middlewares";
-import { eq } from "drizzle-orm";
-import { configItemsTable, projectAgentsTable, projectsTable } from "../db/schema";
-import { ethers } from "ethers";
+import { Hono } from 'hono';
+import { HonoEnv } from '../lib/middlewares';
+import { eq } from 'drizzle-orm';
+import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
+import { ethers } from 'ethers';
 
-export const agentLibRoutes = new Hono<HonoEnv & {
-  Variables: {
-    agent: any,
-    project: any
-    configItems: any,
+export const agentLibRoutes = new Hono<
+  HonoEnv & {
+    Variables: {
+      agent: any;
+      project: any;
+      configItems: any;
+    };
   }
-}>().basePath('/agent');
+>().basePath('/agent');
 
 // needed a base path so the middleware below will only fire on these endpoints
 agentLibRoutes.use(async (c, next) => {
@@ -20,7 +22,7 @@ agentLibRoutes.use(async (c, next) => {
 
   // check how old the signed auth header is
   if (+new Date() - parseInt(timestampStr) > 30000) {
-    return c.json({ error: 'sa-agent-auth message is too old'}, 401);
+    return c.json({ error: 'sa-agent-auth message is too old' }, 401);
   }
 
   const agentId = await ethers.verifyMessage(`${projectId}//${timestampStr}`, sig);
@@ -29,24 +31,33 @@ agentLibRoutes.use(async (c, next) => {
   const db = c.var.db;
 
   const projectAgent = await db.query.projectAgentsTable.findFirst({
-    where: ((t, { eq, and }) => and(eq(t.projectId, projectId), eq(t.id, agentId))),
+    where: (t, { eq, and }) => and(eq(t.projectId, projectId), eq(t.id, agentId)),
   });
 
   if (!projectAgent) {
-    await db.insert(projectAgentsTable).values({
-      id: agentId,
-      projectId,
-      label: c.req.header('sa-agent-label'),
-    }).returning();
-    return c.json({ message: 'agent is not yet authorized for this project', status: 'pending' }, 401);
+    await db
+      .insert(projectAgentsTable)
+      .values({
+        id: agentId,
+        projectId,
+        label: c.req.header('sa-agent-label'),
+      })
+      .returning();
+    return c.json(
+      { message: 'agent is not yet authorized for this project', status: 'pending' },
+      401
+    );
   } else if (projectAgent.status === 'pending') {
-    return c.json({ message: 'agent is not yet authorized for this project', status: 'pending' }, 401);
+    return c.json(
+      { message: 'agent is not yet authorized for this project', status: 'pending' },
+      401
+    );
   } else if (projectAgent.status === 'disabled') {
     return c.json({ message: 'agent has been disabled for this project', status: 'disabled' }, 401);
   }
 
   c.set('agent', projectAgent);
-  
+
   const project = await db.query.projectsTable.findFirst({
     where: eq(projectsTable.id, projectId),
   });
@@ -64,7 +75,7 @@ agentLibRoutes.use(async (c, next) => {
 // endpoint used by client lib to fetch minimal project metadata
 agentLibRoutes.get('/project-metadata', async (c) => {
   const db = c.var.db;
-  
+
   const configItems = c.var.configItems;
 
   const domainPatterns = new Set<string>();
@@ -78,29 +89,30 @@ agentLibRoutes.get('/project-metadata', async (c) => {
 
   return c.json({
     proxyDomains: Array.from(domainPatterns),
-  })
+  });
 });
 
 // proxy endpoint used by client lib
 agentLibRoutes.post('/proxy', async (c) => {
-  
-
   const originalUrl = c.req.header('sa-original-url');
   const originalMethod = c.req.header('sa-original-method')?.toLowerCase() || 'get';
   if (!originalUrl) {
-    return c.json({ error: 'Missing required header `sa-original-url`'}, 400);
+    return c.json({ error: 'Missing required header `sa-original-url`' }, 400);
   }
-  
+
   console.log('SA PROXY', originalMethod, originalUrl);
 
   // fill in our secrets
   const headers = c.req.header();
   let headersJsonStr = JSON.stringify(headers);
-  
+
   // TODO fetch project settings and replace keys accordingly
   // should first check if url matches pattern and replace relevant keys only
   headersJsonStr = headersJsonStr.replace('{{LLM_KEY}}', DMNO_CONFIG.MASTER_OPENAI_API_KEY);
-  headersJsonStr = headersJsonStr.replace('{{LANGSMITH_API_KEY}}', DMNO_CONFIG.MASTER_LANGSMITH_API_KEY);
+  headersJsonStr = headersJsonStr.replace(
+    '{{LANGSMITH_API_KEY}}',
+    DMNO_CONFIG.MASTER_LANGSMITH_API_KEY
+  );
 
   const headersJson = JSON.parse(headersJsonStr);
   delete headersJson['sa-agent-auth'];
@@ -108,7 +120,7 @@ agentLibRoutes.post('/proxy', async (c) => {
   delete headersJson['sa-original-method'];
   delete headersJson['host'];
   delete headersJson['cf-connecting-ip'];
-  
+
   let bodyToSend: string | Blob | undefined;
   if (headersJson['content-type'] === 'application/json') {
     // example showing changing the model in the proxy
@@ -116,11 +128,11 @@ agentLibRoutes.post('/proxy', async (c) => {
     if (reqBodyObj.model) {
       reqBodyObj.model = 'gpt-4o-mini';
     }
-    bodyToSend = JSON.stringify(reqBodyObj);  
+    bodyToSend = JSON.stringify(reqBodyObj);
   } else if (originalMethod !== 'get' && originalMethod !== 'head') {
     bodyToSend = await c.req.blob();
   }
-  
+
   // TODO: do we want to substitution in request body too?
   // note - if we mess with the body, we'll have to adjust content-length header
 
@@ -130,19 +142,18 @@ agentLibRoutes.post('/proxy', async (c) => {
   const llmResult = await fetch(originalUrl, {
     method: originalMethod,
     headers: headersJson,
-    ...bodyToSend && { body: bodyToSend },
+    ...(bodyToSend && { body: bodyToSend }),
   });
 
   const resBodyText = await llmResult.text();
-  
+
   const resultContentType = llmResult.headers.get('content-type');
   if (resultContentType) c.header('content-type', resultContentType);
-  
+
   // console.log('llm response', {
   //   statusCode: llmResult.status,
   //   contentType: resultContentType,
   // })
-
 
   if (llmResult.status !== 200) {
     console.log('Error!', resBodyText);

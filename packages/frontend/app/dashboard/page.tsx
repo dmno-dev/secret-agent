@@ -1,4 +1,4 @@
-import { ProjectsView } from "./components/projects-view";
+import { ProjectsView } from './components/projects-view';
 
 export default function Dashboard() {
   return (

@@ -8,7 +8,11 @@
     "db:setup": "pnpm --filter \"@secretagent.sh/api\" run db:migrate:local",
     "dev": "turbo dev --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
     "build": "turbo build --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "turbo lint --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
+    "lint:fix": "turbo lint:fix --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\""
   },
   "keywords": [],
   "author": "",
@@ -19,6 +23,14 @@
     "@dmno/nextjs-integration": "^0.0.14",
     "dmno": "^0.0.37",
     "turbo": "^2.4.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5"
   },
   "engines": {
     "node": ">=22"

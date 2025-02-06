@@ -4,18 +4,14 @@
   That library does lots of stuff to intercept requests, however it is used for mocking, not for altering requests
   so we copy some of their strategies (and helper code), but adjust to alter the requests
 */
-import { urlToHttpOptions } from 'node:url'
+import { urlToHttpOptions } from 'node:url';
 import {
   Agent,
   Agent as HttpAgent,
   globalAgent as httpGlobalAgent,
   IncomingMessage,
-} from 'node:http'
-import {
-  RequestOptions,
-  Agent as HttpsAgent,
-  globalAgent as httpsGlobalAgent,
-} from 'node:https'
+} from 'node:http';
+import { RequestOptions, Agent as HttpsAgent, globalAgent as httpsGlobalAgent } from 'node:https';
 import {
   /**
    * @note Use the Node.js URL instead of the global URL
@@ -26,58 +22,55 @@ import {
   URL,
   Url as LegacyURL,
   parse as parseUrl,
-} from 'node:url'
+} from 'node:url';
 
 const logger = {
   info(...msgs: Array<any>) {
     // console.log(...msgs);
-  }
-}
+  },
+};
 // const logger = new Logger('http normalizeClientRequestArgs')
 
-export type HttpRequestCallback = (response: IncomingMessage) => void
+export type HttpRequestCallback = (response: IncomingMessage) => void;
 
 export type ClientRequestArgs =
   // Request without any arguments is also possible.
   | []
   | [string | URL | LegacyURL, HttpRequestCallback?]
   | [string | URL | LegacyURL, RequestOptions, HttpRequestCallback?]
-  | [RequestOptions, HttpRequestCallback?]
+  | [RequestOptions, HttpRequestCallback?];
 
-function resolveRequestOptions(
-  args: ClientRequestArgs,
-  url: URL
-): RequestOptions {
+function resolveRequestOptions(args: ClientRequestArgs, url: URL): RequestOptions {
   // Calling `fetch` provides only URL to `ClientRequest`
   // without any `RequestOptions` or callback.
   if (typeof args[1] === 'undefined' || typeof args[1] === 'function') {
-    logger.info('request options not provided, deriving from the url', url)
-    return urlToHttpOptions(url)
+    logger.info('request options not provided, deriving from the url', url);
+    return urlToHttpOptions(url);
   }
 
   if (args[1]) {
-    logger.info('has custom RequestOptions!', args[1])
-    const requestOptionsFromUrl = urlToHttpOptions(url)
+    logger.info('has custom RequestOptions!', args[1]);
+    const requestOptionsFromUrl = urlToHttpOptions(url);
 
-    logger.info('derived RequestOptions from the URL:', requestOptionsFromUrl)
+    logger.info('derived RequestOptions from the URL:', requestOptionsFromUrl);
 
     /**
      * Clone the request options to lock their state
      * at the moment they are provided to `ClientRequest`.
      * @see https://github.com/mswjs/interceptors/issues/86
      */
-    logger.info('cloning RequestOptions...')
-    const clonedRequestOptions = cloneObject(args[1])
-    logger.info('successfully cloned RequestOptions!', clonedRequestOptions)
+    logger.info('cloning RequestOptions...');
+    const clonedRequestOptions = cloneObject(args[1]);
+    logger.info('successfully cloned RequestOptions!', clonedRequestOptions);
 
     return {
       ...requestOptionsFromUrl,
       ...clonedRequestOptions,
-    }
+    };
   }
 
-  logger.info('using an empty object as request options')
-  return {} as RequestOptions
+  logger.info('using an empty object as request options');
+  return {} as RequestOptions;
 }
 
 /**
@@ -86,30 +79,28 @@ function resolveRequestOptions(
  * and will replace URL properties like "host", "path", and "port", if specified.
  */
 function overrideUrlByRequestOptions(url: URL, options: RequestOptions): URL {
-  url.host = options.host || url.host
-  url.hostname = options.hostname || url.hostname
-  url.port = options.port ? options.port.toString() : url.port
+  url.host = options.host || url.host;
+  url.hostname = options.hostname || url.hostname;
+  url.port = options.port ? options.port.toString() : url.port;
 
   if (options.path) {
-    const parsedOptionsPath = parseUrl(options.path, false)
-    url.pathname = parsedOptionsPath.pathname || ''
-    url.search = parsedOptionsPath.search || ''
+    const parsedOptionsPath = parseUrl(options.path, false);
+    url.pathname = parsedOptionsPath.pathname || '';
+    url.search = parsedOptionsPath.search || '';
   }
 
-  return url
+  return url;
 }
 
-function resolveCallback(
-  args: ClientRequestArgs
-): HttpRequestCallback | undefined {
-  return typeof args[1] === 'function' ? args[1] : args[2]
+function resolveCallback(args: ClientRequestArgs): HttpRequestCallback | undefined {
+  return typeof args[1] === 'function' ? args[1] : args[2];
 }
 
 export type NormalizedClientRequestArgs = [
   url: URL,
   options: ResolvedRequestOptions,
-  callback?: HttpRequestCallback
-]
+  callback?: HttpRequestCallback,
+];
 
 /**
  * Normalizes parameters given to a `http.request` call
@@ -119,42 +110,42 @@ export function normalizeClientRequestArgs(
   defaultProtocol: string,
   args: ClientRequestArgs
 ): NormalizedClientRequestArgs {
-  let url: URL
-  let options: ResolvedRequestOptions
-  let callback: HttpRequestCallback | undefined
+  let url: URL;
+  let options: ResolvedRequestOptions;
+  let callback: HttpRequestCallback | undefined;
 
-  logger.info('arguments', args)
-  logger.info('using default protocol:', defaultProtocol)
+  logger.info('arguments', args);
+  logger.info('using default protocol:', defaultProtocol);
 
   // Support "http.request()" calls without any arguments.
   // That call results in a "GET http://localhost" request.
   if (args.length === 0) {
-    const url = new URL('http://localhost')
-    const options = resolveRequestOptions(args, url)
-    return [url, options]
+    const url = new URL('http://localhost');
+    const options = resolveRequestOptions(args, url);
+    return [url, options];
   }
 
   // Convert a url string into a URL instance
   // and derive request options from it.
   if (typeof args[0] === 'string') {
-    logger.info('first argument is a location string:', args[0])
+    logger.info('first argument is a location string:', args[0]);
 
-    url = new URL(args[0])
-    logger.info('created a url:', url)
+    url = new URL(args[0]);
+    logger.info('created a url:', url);
 
-    const requestOptionsFromUrl = urlToHttpOptions(url)
-    logger.info('request options from url:', requestOptionsFromUrl)
+    const requestOptionsFromUrl = urlToHttpOptions(url);
+    logger.info('request options from url:', requestOptionsFromUrl);
 
-    options = resolveRequestOptions(args, url)
-    logger.info('resolved request options:', options)
+    options = resolveRequestOptions(args, url);
+    logger.info('resolved request options:', options);
 
-    callback = resolveCallback(args)
+    callback = resolveCallback(args);
   }
   // Handle a given URL instance as-is
   // and derive request options from it.
   else if (args[0] instanceof URL) {
-    url = args[0]
-    logger.info('first argument is a URL:', url)
+    url = args[0];
+    logger.info('first argument is a URL:', url);
 
     // Check if the second provided argument is RequestOptions.
     // If it is, check if "options.path" was set and rewrite it
@@ -162,19 +153,19 @@ export function normalizeClientRequestArgs(
     // Do this before resolving options from the URL below
     // to prevent query string from being duplicated in the path.
     if (typeof args[1] !== 'undefined' && isObject<RequestOptions>(args[1])) {
-      url = overrideUrlByRequestOptions(url, args[1])
+      url = overrideUrlByRequestOptions(url, args[1]);
     }
 
-    options = resolveRequestOptions(args, url)
-    logger.info('derived request options:', options)
+    options = resolveRequestOptions(args, url);
+    logger.info('derived request options:', options);
 
-    callback = resolveCallback(args)
+    callback = resolveCallback(args);
   }
   // Handle a legacy URL instance and re-normalize from either a RequestOptions object
   // or a WHATWG URL.
   else if ('hash' in args[0] && !('method' in args[0])) {
-    const [legacyUrl] = args
-    logger.info('first argument is a legacy URL:', legacyUrl)
+    const [legacyUrl] = args;
+    logger.info('first argument is a legacy URL:', legacyUrl);
 
     if (legacyUrl.hostname === null) {
       /**
@@ -184,7 +175,7 @@ export function normalizeClientRequestArgs(
        * with the behaviour in ClientRequest.
        * @see https://github.com/nodejs/node/blob/d84f1312915fe45fe0febe888db692c74894c382/lib/_http_client.js#L122
        */
-      logger.info('given legacy URL is relative (no hostname)')
+      logger.info('given legacy URL is relative (no hostname)');
 
       return isObject(args[1])
         ? normalizeClientRequestArgs(defaultProtocol, [
@@ -194,47 +185,41 @@ export function normalizeClientRequestArgs(
         : normalizeClientRequestArgs(defaultProtocol, [
             { path: legacyUrl.path },
             args[1] as HttpRequestCallback,
-          ])
+          ]);
     }
 
-    logger.info('given legacy url is absolute')
+    logger.info('given legacy url is absolute');
 
     // We are dealing with an absolute URL, so convert to WHATWG and try again.
-    const resolvedUrl = new URL(legacyUrl.href)
+    const resolvedUrl = new URL(legacyUrl.href);
 
     return args[1] === undefined
       ? normalizeClientRequestArgs(defaultProtocol, [resolvedUrl])
       : typeof args[1] === 'function'
-      ? normalizeClientRequestArgs(defaultProtocol, [resolvedUrl, args[1]])
-      : normalizeClientRequestArgs(defaultProtocol, [
-          resolvedUrl,
-          args[1],
-          args[2],
-        ])
+        ? normalizeClientRequestArgs(defaultProtocol, [resolvedUrl, args[1]])
+        : normalizeClientRequestArgs(defaultProtocol, [resolvedUrl, args[1], args[2]]);
   }
   // Handle a given "RequestOptions" object as-is
   // and derive the URL instance from it.
   else if (isObject(args[0])) {
-    options = { ...(args[0] as any) }
-    logger.info('first argument is RequestOptions:', options)
+    options = { ...(args[0] as any) };
+    logger.info('first argument is RequestOptions:', options);
 
     // When handling a "RequestOptions" object without an explicit "protocol",
     // infer the protocol from the request issuing module (http/https).
-    options.protocol = options.protocol || defaultProtocol
-    logger.info('normalized request options:', options)
+    options.protocol = options.protocol || defaultProtocol;
+    logger.info('normalized request options:', options);
 
-    url = getUrlByRequestOptions(options)
-    logger.info('created a URL from RequestOptions:', url.href)
+    url = getUrlByRequestOptions(options);
+    logger.info('created a URL from RequestOptions:', url.href);
 
-    callback = resolveCallback(args)
+    callback = resolveCallback(args);
   } else {
-    throw new Error(
-      `Failed to construct ClientRequest with these parameters: ${args}`
-    )
+    throw new Error(`Failed to construct ClientRequest with these parameters: ${args}`);
   }
 
-  options.protocol = options.protocol || url.protocol
-  options.method = options.method || 'GET'
+  options.protocol = options.protocol || url.protocol;
+  options.method = options.method || 'GET';
 
   /**
    * Infer a fallback agent from the URL protocol.
@@ -253,10 +238,10 @@ export function normalizeClientRequestArgs(
               rejectUnauthorized: options.rejectUnauthorized,
             }),
           })
-        : new HttpAgent()
+        : new HttpAgent();
 
-    options.agent = agent
-    logger.info('resolved fallback agent:', agent)
+    options.agent = agent;
+    logger.info('resolved fallback agent:', agent);
   }
 
   /**
@@ -268,18 +253,14 @@ export function normalizeClientRequestArgs(
    * @see https://github.com/nodejs/node/blob/418ff70b810f0e7112d48baaa72932a56cfa213b/lib/_http_client.js#L157-L159
    */
   if (!options._defaultAgent) {
-    logger.info(
-      'has no default agent, setting the default agent for "%s"',
-      options.protocol
-    )
+    logger.info('has no default agent, setting the default agent for "%s"', options.protocol);
 
-    options._defaultAgent =
-      options.protocol === 'https:' ? httpsGlobalAgent : httpGlobalAgent
+    options._defaultAgent = options.protocol === 'https:' ? httpsGlobalAgent : httpGlobalAgent;
   }
 
-  logger.info('successfully resolved url:', url.href)
-  logger.info('successfully resolved options:', options)
-  logger.info('successfully resolved callback:', callback)
+  logger.info('successfully resolved url:', url.href);
+  logger.info('successfully resolved options:', options);
+  logger.info('successfully resolved callback:', callback);
 
   /**
    * @note If the user-provided URL is not a valid URL in Node.js,
@@ -289,47 +270,44 @@ export function normalizeClientRequestArgs(
    * @see https://github.com/node-fetch/node-fetch/issues/1376#issuecomment-966435555
    */
   if (!(url instanceof URL)) {
-    url = (url as any).toString()
+    url = (url as any).toString();
   }
 
-  return [url, options, callback]
+  return [url, options, callback];
 }
 
 ///
 function isPlainObject(obj?: Record<string, any>): boolean {
-  if (obj == null || !obj.constructor?.name) return false
-  return obj.constructor.name === 'Object'
+  if (obj == null || !obj.constructor?.name) return false;
+  return obj.constructor.name === 'Object';
 }
 
-export function cloneObject<ObjectType extends Record<string, any>>(
-  obj: ObjectType
-): ObjectType {
+export function cloneObject<ObjectType extends Record<string, any>>(obj: ObjectType): ObjectType {
   const enumerableProperties = Object.entries(obj).reduce<Record<string, any>>(
     (acc, [key, value]) => {
       // Recursively clone only plain objects, omitting class instances.
-      acc[key] = isPlainObject(value) ? cloneObject(value) : value
-      return acc
+      acc[key] = isPlainObject(value) ? cloneObject(value) : value;
+      return acc;
     },
     {}
-  )
+  );
 
   return isPlainObject(obj)
     ? enumerableProperties
-    : Object.assign(Object.getPrototypeOf(obj), enumerableProperties)
+    : Object.assign(Object.getPrototypeOf(obj), enumerableProperties);
 }
 
 export function isObject<T>(value: any, loose = false): value is T {
   return loose
     ? Object.prototype.toString.call(value).startsWith('[object ')
-    : Object.prototype.toString.call(value) === '[object Object]'
+    : Object.prototype.toString.call(value) === '[object Object]';
 }
-
 
 // Request instance constructed by the "request" library
 // has a "self" property that has a "uri" field. This is
 // reproducible by performing a "XMLHttpRequest" request in JSDOM.
 export interface RequestSelf {
-  uri?: URL
+  uri?: URL;
 }
 
 export type ResolvedRequestOptions = RequestOptions & RequestSelf;
@@ -339,9 +317,7 @@ const DEFAULT_PROTOCOL = 'http:';
 const DEFAULT_HOSTNAME = 'localhost';
 const SSL_PORT = 443;
 
-function getAgent(
-  options: ResolvedRequestOptions,
-): Agent | HttpsAgent | undefined {
+function getAgent(options: ResolvedRequestOptions): Agent | HttpsAgent | undefined {
   return options.agent instanceof Agent ? options.agent : undefined;
 }
 
@@ -363,9 +339,7 @@ function getProtocolByRequestOptions(options: ResolvedRequestOptions): string {
   return isSecureRequest ? 'https:' : options.uri?.protocol || DEFAULT_PROTOCOL;
 }
 
-function getPortByRequestOptions(
-  options: ResolvedRequestOptions,
-): number | undefined {
+function getPortByRequestOptions(options: ResolvedRequestOptions): number | undefined {
   // Use the explicitly provided port.
   if (options.port) {
     return Number(options.port);
@@ -388,13 +362,11 @@ function getPortByRequestOptions(
 }
 
 interface RequestAuth {
-  username: string
-  password: string
+  username: string;
+  password: string;
 }
 
-function getAuthByRequestOptions(
-  options: ResolvedRequestOptions,
-): RequestAuth | undefined {
+function getAuthByRequestOptions(options: ResolvedRequestOptions): RequestAuth | undefined {
   if (options.auth) {
     const [username, password] = options.auth.split(':');
     return { username, password };
@@ -436,14 +408,11 @@ export function getUrlByRequestOptions(options: ResolvedRequestOptions): URL {
   const hostname = getHostname(options);
   const path = options.path || DEFAULT_PATH;
   const credentials = getAuthByRequestOptions(options);
-  const authString = credentials
-    ? `${credentials.username}:${credentials.password}@`
-    : '';
+  const authString = credentials ? `${credentials.username}:${credentials.password}@` : '';
   const portString = typeof port !== 'undefined' ? `:${port}` : '';
   const url = new URL(`${protocol}//${hostname}${portString}${path}`);
   url.username = credentials?.username || '';
   url.password = credentials?.password || '';
-
 
   return url;
 }

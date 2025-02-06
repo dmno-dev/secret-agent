@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-const characters =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
 
 export function useScrambleEffect(text: string, duration = 1000) {
   const [scrambledText, setScrambledText] = useState(text);
@@ -23,12 +22,12 @@ export function useScrambleEffect(text: string, duration = 1000) {
       }
 
       const scrambled = text
-        .split("")
+        .split('')
         .map((char) => {
           if (Math.random() < progress) return char;
           return characters[Math.floor(Math.random() * characters.length)];
         })
-        .join("");
+        .join('');
 
       setScrambledText(scrambled);
     }, 50);

@@ -2,17 +2,13 @@
   "compilerOptions": {
     "module": "Preserve",
     "target": "ESNext",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "strict": true,
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
     "rootDir": "./",
-    "customConditions": [ "ts-src" ],
+    "customConditions": ["ts-src"]
   },
-  "include": [
-    "src/**/*.ts",
-  ]
+  "include": ["src/**/*.ts"]
 }

@@ -17,7 +17,7 @@ function buildRegexFromDomainPattern(pattern: string) {
   if (!patternParts) {
     throw new Error(`Unable to parse domain pattern - ${pattern}`);
   }
-  let [,protocol, domain, path] = patternParts;
+  let [, protocol, domain, path] = patternParts;
 
   if (protocol === '*' || !protocol) {
     protocol = '[a-z+]+';

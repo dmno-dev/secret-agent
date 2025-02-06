@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { secretAgentApi } from "@/lib/api";
-import { Project } from "@/lib/types";
-import { ArrowLeft, Plus } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { NewProjectModal } from "./new-project-modal";
-import { ProjectCard } from "./project-card";
-import { ProjectDetails } from "./project-details";
-import { ProjectSkeleton } from "./project-skeleton";
+import { secretAgentApi } from '@/lib/api';
+import { Project } from '@/lib/types';
+import { ArrowLeft, Plus } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { NewProjectModal } from './new-project-modal';
+import { ProjectDetails } from './project-details';
+import { ProjectSkeleton } from './project-skeleton';
+import { ProjectCard } from './project-card';
 
 export function ProjectsView() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -16,7 +16,7 @@ export function ProjectsView() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedProjectId = searchParams.get("projectId");
+  const selectedProjectId = searchParams.get('projectId');
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
@@ -24,11 +24,11 @@ export function ProjectsView() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await secretAgentApi.get("projects");
+        const response = await secretAgentApi.get('projects');
         const data = (await response.json()) as Project[];
         setProjects(data);
       } catch (error) {
-        console.error("Error fetching projects:", error);
+        console.error('Error fetching projects:', error);
       } finally {
         setIsLoading(false);
       }
@@ -45,20 +45,18 @@ export function ProjectsView() {
     try {
       setIsLoading(true);
 
-      const response = await secretAgentApi.post("projects", {
+      const response = await secretAgentApi.post('projects', {
         json: {
           name: projectName,
         },
       });
 
       const newProject = (await response.json()) as Project;
-      setProjects((prev) =>
-        prev.length === 0 ? [newProject] : [...prev, newProject]
-      );
+      setProjects((prev) => (prev.length === 0 ? [newProject] : [...prev, newProject]));
       setIsNewProjectModalOpen(false);
       router.push(`/dashboard?projectId=${newProject.id}`);
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +71,7 @@ export function ProjectsView() {
     return (
       <div className="space-y-6">
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push('/dashboard')}
           className="inline-flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

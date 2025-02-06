@@ -1,9 +1,9 @@
-import NumberFlow from "@number-flow/react";
-import { BarChart } from "lucide-react";
-import { useApiCallStats } from "../hooks/use-api-call-stats";
+import NumberFlow from '@number-flow/react';
+import { BarChart } from 'lucide-react';
+import { useApiCallStats } from '../hooks/use-api-call-stats';
 
 const format = {
-  notation: "standard",
+  notation: 'standard',
   useGrouping: true,
 } as const;
 
@@ -23,7 +23,7 @@ export function ApiCallStats({ projectId }: { projectId: string }) {
     <div className="flex items-center space-x-2">
       <BarChart size={20} className="text-gray-700 dark:text-green-400" />
       <span>
-        API Calls:{" "}
+        API Calls:{' '}
         <NumberFlow
           value={totalCalls}
           format={format}

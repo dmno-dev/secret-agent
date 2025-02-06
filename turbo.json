@@ -3,15 +3,15 @@
   // "globalPassThroughEnv": [ "CF_PAGES", "CF_PAGES_BRANCH", "CF_PAGES_COMMIT_SHA", "CF_PAGES_URL" ],
   "tasks": {
     "build": {
-      "dependsOn": [ "^build" ],
-      "inputs": [ "tsconfig.json", "tsconfig.*.json", "tsup.config.ts", "src/**" ],
-      "outputs": [ "dist/**" ]
+      "dependsOn": ["^build"],
+      "inputs": ["tsconfig.json", "tsconfig.*.json", "tsup.config.ts", "src/**"],
+      "outputs": ["dist/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
-    "lint": { }
+    "lint": {}
   },
   "ui": "tui"
 }

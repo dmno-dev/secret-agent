@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { AUTH_KEY_LOCALSTORAGE_KEY } from "@/lib/api";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type React from "react";
-import { useAccount, useDisconnect } from "wagmi";
+import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type React from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
 
 interface TerminalProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export function Terminal({ children }: TerminalProps) {
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.startsWith('/dashboard');
 
   function logout() {
     disconnect();
@@ -33,7 +33,7 @@ export function Terminal({ children }: TerminalProps) {
               <div
                 className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-600 transition-colors"
                 onClick={() => isConnected && logout()}
-                title={isConnected ? "Disconnect wallet" : ""}
+                title={isConnected ? 'Disconnect wallet' : ''}
               ></div>
               <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -56,10 +56,10 @@ export function Terminal({ children }: TerminalProps) {
             )}
           </div>
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
           >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
         <div className="p-4 bg-gray-100 dark:bg-gray-900 transition-colors duration-100">

@@ -1,12 +1,12 @@
 import 'dmno/injector-standalone/edge-auto';
-import { Hono } from 'hono'
+import { Hono } from 'hono';
 
 import { HonoEnv, initCommonMiddlewares } from './lib/middlewares';
-import { authRoutes } from './routes/auth';
 import { agentLibRoutes } from './routes/agent-lib';
-import { projectRoutes } from './routes/project';
-import { configItemRoutes } from './routes/config-items';
 import { agentRoutes } from './routes/agents';
+import { authRoutes } from './routes/auth';
+import { configItemRoutes } from './routes/config-items';
+import { projectRoutes } from './routes/project';
 
 const app = new Hono<HonoEnv>();
 
@@ -21,4 +21,4 @@ app.route('/', projectRoutes);
 app.route('/', configItemRoutes);
 app.route('/', agentRoutes);
 
-export default app
+export default app;

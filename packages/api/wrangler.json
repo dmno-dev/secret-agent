@@ -6,22 +6,26 @@
   "compatibility_flags": ["nodejs_compat"],
   "env": {
     "local": {
-      "d1_databases": [{
-        "binding": "DB",
-        "database_name": "secret-agent-dev",
-        "database_id": "477f1c66-f276-4d96-84a1-8d2db8d69708",
-        "migrations_dir": "./drizzle"
-      }]
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "secret-agent-dev",
+          "database_id": "477f1c66-f276-4d96-84a1-8d2db8d69708",
+          "migrations_dir": "./drizzle"
+        }
+      ]
     },
     "production": {
-      "d1_databases": [{
-        "binding": "DB",
-        "database_name": "secret-agent-prod",
-        "database_id": "6ff1340d-7dfc-426b-9b34-83496245b72e",
-        "migrations_dir": "./drizzle"
-      }]
-    },
-  },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "secret-agent-prod",
+          "database_id": "6ff1340d-7dfc-426b-9b34-83496245b72e",
+          "migrations_dir": "./drizzle"
+        }
+      ]
+    }
+  }
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],

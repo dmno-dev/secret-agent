@@ -1,5 +1,5 @@
-import http from 'node:http'
-import https from 'node:https'
+import http from 'node:http';
+import https from 'node:https';
 
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
@@ -10,16 +10,13 @@ export function enableHttpInterceptor(domainPatterns: Array<string>) {
 
   (https as any)._originalHttpsRequest = originalHttpsRequest;
   // @ts-ignore
-  https.request = function patchedHttpsRequest (...args: Parameters<typeof https.request>) {
-    const [url, options, callback] = normalizeClientRequestArgs(
-      'https:',
-      args
-    );
+  https.request = function patchedHttpsRequest(...args: Parameters<typeof https.request>) {
+    const [url, options, callback] = normalizeClientRequestArgs('https:', args);
 
     if (checkUrlInPatternList(url.href, domainPatterns)) {
-      console.log('proxy!')
-    // if (url.href.startsWith('https://api.openai.com')) {
-      
+      console.log('proxy!');
+      // if (url.href.startsWith('https://api.openai.com')) {
+
       // delete url related config from options
       delete options.host;
       delete options.hostname;
@@ -28,12 +25,13 @@ export function enableHttpInterceptor(domainPatterns: Array<string>) {
 
       const headers = options.headers || {};
       // pass along original request URL and method as headers
-      headers['sa-original-url'] = url.href
+      headers['sa-original-url'] = url.href;
       headers['sa-original-method'] = options.method;
 
       return originalHttpsRequest(
         // call our proxy url instead
-        'https://localhost:8787/api/proxy', {
+        'https://localhost:8787/api/proxy',
+        {
           ...options,
           headers,
           rejectUnauthorized: false,
@@ -48,7 +46,7 @@ export function enableHttpInterceptor(domainPatterns: Array<string>) {
     const req = originalHttpsRequest(...args);
     const originalReqWrite = req.write;
     const originalReqEnd = req.end;
-    req.write = function patchedReqWrite (...writeArgs) {
+    req.write = function patchedReqWrite(...writeArgs) {
       const chunk = writeArgs[0];
       const isBuffer = chunk instanceof Buffer;
       let chunkStr = chunk.toString();
@@ -56,21 +54,21 @@ export function enableHttpInterceptor(domainPatterns: Array<string>) {
 
       if (chunkStr.includes('supersecretkey')) {
         console.log('FOUND SECRET IN REQUEST BODY!');
-        chunkStr = chunkStr.replaceAll('supersecretkey', '**REDACTED****')
+        chunkStr = chunkStr.replaceAll('supersecretkey', '**REDACTED****');
         // console.log('scrubbed: ', chunkStr);
       }
-      
+
       return originalReqWrite.call(
-        req, 
+        req,
         isBuffer ? Buffer.from(chunkStr) : chunkStr,
-        ...writeArgs.slice(1),
+        ...writeArgs.slice(1)
       );
-    }
+    };
     req.end = function patchedReqEnd(...writeArgs) {
       // TODO: scrub -- usually end is just empty, although it can have data
       console.log('> patched end', writeArgs);
       return originalReqEnd.call(req, ...writeArgs);
-    }
+    };
     //   const chunk = writeArgs[0];
     //   const isBuffer = chunk instanceof Buffer;
     //   const chunkStr = chunk.toString();
@@ -79,18 +77,15 @@ export function enableHttpInterceptor(domainPatterns: Array<string>) {
     //     chunkStr.replaceAll('supersecretkey', '**REDACTED**')
     //   }
     //   writeArgs[0] = isBuffer ? Buffer.from(chunkStr) : chunkStr;
-      
+
     //   return originalReqWrite.apply(req, writeArgs as any);
     // }
     // TODO: patch req.end
     return req;
-  }
-
+  };
 
   // TODO: patch http.request, and maybe https.get/http.get
 }
 function disableHttpInterceptor() {
   https.request = (https as any)._originalHttpsRequest;
 }
-
-

@@ -1,11 +1,11 @@
-import { Project } from "@/lib/types";
-import { Copy } from "lucide-react";
-import { toast } from "sonner";
-import { AgentsList } from "./agents-list";
-import { ApiCallStats } from "./api-call-stats";
-import { BalanceDisplay } from "./balance-display";
-import { ConfigItems } from "./config-items";
-import { FundProject } from "./fund-project";
+import { Project } from '@/lib/types';
+import { Copy } from 'lucide-react';
+import { toast } from 'sonner';
+import { AgentsList } from './agents-list';
+import { ApiCallStats } from './api-call-stats';
+import { BalanceDisplay } from './balance-display';
+import { ConfigItems } from './config-items';
+import { FundProject } from './fund-project';
 
 interface ProjectDetailsProps {
   project: Project;
@@ -14,12 +14,10 @@ interface ProjectDetailsProps {
 export function ProjectDetails({ project }: ProjectDetailsProps) {
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(project.id);
-    toast.success("Address copied to clipboard");
+    toast.success('Address copied to clipboard');
   };
 
-  const formattedAddress = `${project.id.slice(0, 6)}...${project.id.slice(
-    -4
-  )}`;
+  const formattedAddress = `${project.id.slice(0, 6)}...${project.id.slice(-4)}`;
 
   return (
     <div className="flex-1 border border-green-400 rounded p-4 bg-white dark:bg-black">

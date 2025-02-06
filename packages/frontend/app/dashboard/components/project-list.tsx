@@ -1,5 +1,5 @@
-import { Project } from "@/lib/types";
-import { Plus } from "lucide-react";
+import { Project } from '@/lib/types';
+import { Plus } from 'lucide-react';
 
 interface ProjectListProps {
   projects: Project[];
@@ -7,11 +7,7 @@ interface ProjectListProps {
   onNewProject: () => void;
 }
 
-export function ProjectList({
-  projects,
-  onSelectProject,
-  onNewProject,
-}: ProjectListProps) {
+export function ProjectList({ projects, onSelectProject, onNewProject }: ProjectListProps) {
   return (
     <div className="w-64 border border-green-400 rounded p-4 bg-white dark:bg-black">
       <div className="flex items-center justify-between mb-4">

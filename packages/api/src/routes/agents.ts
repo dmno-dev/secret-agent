@@ -1,11 +1,11 @@
-import { createMiddleware } from 'hono/factory'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { createMiddleware } from 'hono/factory';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 
-import { createPrivyServerWallet } from "../lib/privy";
-import { configItemsTable, projectAgentsTable, projectsTable } from "../db/schema";
+import { createPrivyServerWallet } from '../lib/privy';
+import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
 
@@ -20,30 +20,35 @@ agentRoutes.post(
     z.object({
       id: z.string().trim(),
       label: z.string().trim(),
-    }),
+    })
   ),
   async (c) => {
     const body = c.req.valid('json');
-    console.log('body', body)
+    console.log('body', body);
     const db = c.var.db;
 
-    const newAgent = await db.insert(projectAgentsTable).values({
-      id: body.id,
-      projectId: c.var.project.id,
-      label: body.label,
-      status: 'enabled',
-    }).returning();
+    const newAgent = await db
+      .insert(projectAgentsTable)
+      .values({
+        id: body.id,
+        projectId: c.var.project.id,
+        label: body.label,
+        status: 'enabled',
+      })
+      .returning();
 
     return c.json(newAgent[0]);
   }
 );
 
-export const agentIdMiddleware = createMiddleware<HonoEnv & {
-  Variables: {
-    project: any,
-    agent: any,
+export const agentIdMiddleware = createMiddleware<
+  HonoEnv & {
+    Variables: {
+      project: any;
+      agent: any;
+    };
   }
-}>(async (c, next) => {
+>(async (c, next) => {
   if (!c.var.authUserId) {
     return c.json({ error: 'You must be logged in' }, 401);
   }
@@ -55,7 +60,7 @@ export const agentIdMiddleware = createMiddleware<HonoEnv & {
   if (!agentId) throw new Error('Use this middleware only with a :agentId param');
 
   const agent = await db.query.projectAgentsTable.findFirst({
-    where: (t, { eq, and }) => and(eq(t.projectId, c.var.project.id), eq(t.id, agentId))
+    where: (t, { eq, and }) => and(eq(t.projectId, c.var.project.id), eq(t.id, agentId)),
   });
   if (!agent) {
     return c.json({ error: 'Project does not exist' }, 404);
@@ -83,18 +88,23 @@ agentRoutes.patch(
   agentIdMiddleware,
   zValidator(
     'json',
-    z.object({
-      label: z.string(),
-      status: z.enum(['enabled', 'disabled', 'paused']),
-    }).partial(),
+    z
+      .object({
+        label: z.string(),
+        status: z.enum(['enabled', 'disabled', 'paused']),
+      })
+      .partial()
   ),
   async (c) => {
     const body = c.req.valid('json');
     const db = c.var.db;
-    const updatedAgent = await db.update(projectAgentsTable).set({
-      label: body.label,
-      status: body.status,
-    }).returning();
+    const updatedAgent = await db
+      .update(projectAgentsTable)
+      .set({
+        label: body.label,
+        status: body.status,
+      })
+      .returning();
 
     return c.json(updatedAgent);
   }

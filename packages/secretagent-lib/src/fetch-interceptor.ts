@@ -2,10 +2,12 @@
 function saPatchedFetch(...args: Array<any>) {
   const [urlOrFetchOpts, fetchOptsArg] = args;
   const fetchOpts = (typeof urlOrFetchOpts === 'object' ? urlOrFetchOpts : fetchOptsArg) || {};
-  const fetchUrl = (typeof urlOrFetchOpts === 'object' ? (urlOrFetchOpts as Request).url : urlOrFetchOpts).toString();
+  const fetchUrl = (
+    typeof urlOrFetchOpts === 'object' ? (urlOrFetchOpts as Request).url : urlOrFetchOpts
+  ).toString();
 
   const objToCheckAsString = JSON.stringify(fetchOpts);
-  console.log('patched fetch -',fetchUrl, objToCheckAsString);
+  console.log('patched fetch -', fetchUrl, objToCheckAsString);
 
   // @ts-ignore
   return saPatchedFetch._unpatchedFetch.apply(this, args);
