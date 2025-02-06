@@ -1,11 +1,14 @@
-import { BarChart, Shield, Wallet } from "lucide-react";
-import { ConfigItems } from "./config-items";
+import { Wallet } from "lucide-react";
 import { AgentsList } from "./agents-list";
+import { ApiCallStats } from "./api-call-stats";
+import { BalanceDisplay } from "./balance-display";
+import { ConfigItems } from "./config-items";
+import { FundProject } from "./fund-project";
 
 export function ProjectDetails({
   project,
 }: {
-  project: { name: string; id: string };
+  project: { name: string; id: string; address: string };
 }) {
   return (
     <div className="flex-1 border border-gray-300 dark:border-green-400 rounded p-4 bg-white dark:bg-black">
@@ -15,14 +18,11 @@ export function ProjectDetails({
           <Wallet size={20} className="text-gray-700 dark:text-green-400" />
           <span>Project ID: {project.id}</span>
         </div>
-        <div className="flex items-center space-x-2">
-          <Shield size={20} className="text-gray-700 dark:text-green-400" />
-          <span>Balance: 0.5 ETH</span>
+        <div className="flex items-center justify-between">
+          <BalanceDisplay projectAddress={project.address} />
+          <FundProject projectAddress={project.address} />
         </div>
-        <div className="flex items-center space-x-2">
-          <BarChart size={20} className="text-gray-700 dark:text-green-400" />
-          <span>API Calls: 1,234</span>
-        </div>
+        <ApiCallStats />
       </div>
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-2 glow-text">Policy Rules</h3>
@@ -31,9 +31,6 @@ export function ProjectDetails({
           <li>Allowed APIs: OpenAI, Anthropic</li>
         </ul>
       </div>
-      <button className="mt-6 border border-gray-300 dark:border-green-400 rounded p-2 hover:bg-gray-100 dark:hover:bg-green-800 hover:text-gray-900 dark:hover:text-green-200 transition-colors">
-        Fund Project
-      </button>
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
         <ConfigItems />
