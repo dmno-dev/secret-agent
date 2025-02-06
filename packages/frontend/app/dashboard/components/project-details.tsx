@@ -1,4 +1,6 @@
 import { BarChart, Shield, Wallet } from "lucide-react";
+import { ConfigItems } from "./config-items";
+import { AgentsList } from "./agents-list";
 
 export function ProjectDetails({
   project,
@@ -32,6 +34,15 @@ export function ProjectDetails({
       <button className="mt-6 border border-gray-300 dark:border-green-400 rounded p-2 hover:bg-gray-100 dark:hover:bg-green-800 hover:text-gray-900 dark:hover:text-green-200 transition-colors">
         Fund Project
       </button>
+      <div className="mt-6">
+        <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
+        <ConfigItems />
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-xl font-bold mb-4 glow-text">Agents</h3>
+        <AgentsList />
+      </div>
     </div>
   );
 }

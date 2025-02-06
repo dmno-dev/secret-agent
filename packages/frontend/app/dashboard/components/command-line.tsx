@@ -87,7 +87,7 @@ export function CommandLine() {
       </form>
 
       {isFocused && filteredCommands.length > 0 && (
-        <div className="fixed w-[500px] mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto z-[9999]">
+        <div className="fixed w-[500px] mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto z-[5000]">
           {filteredCommands.map((cmd, index) => (
             <div
               key={cmd.id}
