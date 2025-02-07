@@ -24,4 +24,8 @@ export interface ConfigItem {
   settings: {
     foo: string;
   } | null;
+  usageData: {
+    date: string;
+    value: number;
+  }[];
 }

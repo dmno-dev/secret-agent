@@ -5,7 +5,6 @@ import { ConnectWallet, ConnectWalletText, Wallet } from '@coinbase/onchainkit/w
 import { useAccount } from 'wagmi';
 import { Terminal } from '../../components/terminal';
 import { CommandLine } from './command-line';
-import { DashboardNav } from './dashboard-nav';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isConnected: walletIsConnected, isConnecting: walletIsConnecting } = useAccount();
@@ -42,7 +41,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <Terminal>
       <div className="flex flex-col">
-        <DashboardNav />
         <main className="flex-grow p-6">{children}</main>
         <CommandLine />
       </div>

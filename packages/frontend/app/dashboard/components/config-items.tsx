@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
+import { MiniLineChart } from './charts/mini-line-chart';
 
 interface ConfigItemsProps {
   configItems: ConfigItem[];
@@ -16,6 +17,54 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Mock data - replace with real data later
+  const [items, setItems] = useState<ConfigItem[]>([
+    {
+      key: 'OPENAI_API_KEY',
+      value: 'sk-1234567890abcdef',
+      createdAt: '2024-03-15',
+      projectId: 'project-1',
+      itemType: 'user',
+      settings: null,
+      usageData: [
+        {
+          date: '2024-03-15',
+          value: 10,
+        },
+        {
+          date: '2024-03-16',
+          value: 20,
+        },
+        {
+          date: '2024-03-17',
+          value: 30,
+        },
+      ],
+    },
+    {
+      key: 'ANTHROPIC_API_KEY',
+      value: 'sk-ant-123456789',
+      createdAt: '2024-03-10',
+      projectId: 'project-1',
+      itemType: 'user',
+      settings: null,
+      usageData: [
+        {
+          date: '2024-03-15',
+          value: 10,
+        },
+        {
+          date: '2024-03-16',
+          value: 20,
+        },
+        {
+          date: '2024-03-17',
+          value: 30,
+        },
+      ],
+    },
+  ]);
 
   const toggleExpand = (key: string) => {
     setExpandedItem(expandedItem === key ? null : key);
@@ -38,6 +87,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
         projectId: projectId,
         itemType: 'user',
         settings: null,
+        usageData: [],
       };
 
       await secretAgentApi.post(`projects/${projectId}/config`, {
@@ -73,6 +123,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                 <span className="font-medium">{item.key}</span>
                 <span className="text-sm text-gray-500">({item.itemType})</span>
               </div>
+              <MiniLineChart data={item.usageData} />
               <button
                 onClick={(e) => {
                   e.stopPropagation();
