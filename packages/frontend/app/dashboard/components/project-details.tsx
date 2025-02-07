@@ -16,7 +16,6 @@ interface ProjectDetailsProps {
 
 export function ProjectDetails({ project }: ProjectDetailsProps) {
   const { data, isLoading, error } = useProjectDetails(project.id);
-  console.log('data', data);
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(project.id);
@@ -106,7 +105,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
 
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
-        <ConfigItems configItems={data?.configItems || []} projectId={project.id} />
+        <ConfigItems projectId={project.id} configItems={data?.configItems || []} />
       </div>
 
       <div className="mt-6">

@@ -15,30 +15,56 @@ export interface Agent {
   createdAt: string;
 }
 
-export type ConfigItem = {
-  createdAt: string;
-  projectId: string;
+type BaseConfigItem = {
   key: string;
+  projectId: string;
+  createdAt: string;
   usageData?: {
     date: string;
     value: number;
   }[];
-} & (
-  | {
-      itemType: 'llm';
-      llmSettings: {};
-    }
-  | {
-      itemType: 'proxy';
-      maskedValue: string;
-      proxySettings: {
-        matchUrl: Array<string>;
-      };
-    }
-  | {
-      itemType: 'static';
-      maskedValue: string;
-    }
-);
+};
 
-export type ConfigItemCreate = Omit<ConfigItem, 'createdAt'>;
+export type ConfigItem = BaseConfigItem &
+  (
+    | {
+        itemType: 'llm';
+        llmSettings: Record<string, never>;
+      }
+    | {
+        itemType: 'proxy';
+        value: string;
+        maskedValue: string;
+        proxySettings: {
+          matchUrl: string[];
+        };
+      }
+    | {
+        itemType: 'static';
+        value: string;
+        maskedValue: string;
+      }
+  );
+
+type BaseConfigItemCreate = {
+  key: string;
+};
+
+export type ConfigItemCreate = BaseConfigItemCreate &
+  (
+    | {
+        itemType: 'llm';
+        llmSettings: Record<string, never>;
+      }
+    | {
+        itemType: 'proxy';
+        value: string;
+        proxySettings: {
+          matchUrl: string[];
+        };
+      }
+    | {
+        itemType: 'static';
+        value: string;
+      }
+  );

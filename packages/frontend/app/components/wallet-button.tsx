@@ -8,8 +8,13 @@ import {
   WalletDropdownDisconnect,
   WalletDropdownLink,
 } from '@coinbase/onchainkit/wallet';
+import { useAccount } from 'wagmi';
 
 export function WalletButton() {
+  const { isConnected } = useAccount();
+  if (!isConnected) {
+    return null;
+  }
   return (
     <div className="flex items-center">
       <Wallet>

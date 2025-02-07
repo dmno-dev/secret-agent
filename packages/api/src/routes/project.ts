@@ -1,12 +1,12 @@
-import { createMiddleware } from 'hono/factory';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
-import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
+import { z } from 'zod';
 
-import { createPrivyServerWallet } from '../lib/privy';
-import { configItemsTable, projectsTable } from '../db/schema';
+import { projectsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
+import { createPrivyServerWallet } from '../lib/privy';
 import { serializeConfigItem } from '../lib/serializers';
 
 export const projectRoutes = new Hono<HonoEnv>();

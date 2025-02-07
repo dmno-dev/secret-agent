@@ -6,6 +6,8 @@
   "main": "index.js",
   "scripts": {
     "db:setup": "pnpm --filter \"@secretagent.sh/api\" run db:migrate:local",
+    "db:reset": "pnpm --filter \"@secretagent.sh/api\" run db:reset:local",
+    "db:studio": "pnpm --filter \"@secretagent.sh/api\" run db:studio:local",
     "dev": "turbo dev --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
     "build": "turbo build --filter=\"@secretagent.sh/*\" --filter=\"secretagent.sh\"",
     "test": "echo \"Error: no test specified\" && exit 1",

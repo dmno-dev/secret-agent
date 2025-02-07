@@ -86,14 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 1000, // 5 seconds
-      refetchInterval: 10 * 1000, // 10 seconds
-    },
-  },
-});
+const queryClient = new QueryClient({});
 
 function ProvidersInner(props: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
