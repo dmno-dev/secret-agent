@@ -1,7 +1,7 @@
 'use client';
 
 import { secretAgentApi } from '@/lib/api';
-import { ConfigItem } from '@/lib/types';
+import { ConfigItem, ConfigItemCreate } from '@/lib/types';
 import { ChevronDown, ChevronRight, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -33,12 +33,21 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
         throw new Error('Value is required when not shared');
       }
 
-      const configItem: ConfigItem = {
+      const configItem: ConfigItemCreate = {
         key: data.name,
-        value: data.shared ? '' : data.value!,
-        createdAt: new Date().toISOString(),
         projectId: projectId,
-        itemType: 'user',
+        ...(data.shared
+          ? {
+              itemType: 'llm',
+              llmSettings: {},
+            }
+          : {
+              itemType: 'proxy',
+              value: data.value,
+              proxySettings: {
+                domainRules: data.domainRules,
+              },
+            }),
       };
 
       await secretAgentApi.post(`projects/${projectId}/config-items`, {

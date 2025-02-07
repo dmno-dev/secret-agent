@@ -22,9 +22,9 @@ import SecretAgent from 'secretagent.sh';
 // Configure a file to persist the agent's CDP MPC Wallet Data
 const WALLET_DATA_FILE = '../wallet_data.txt';
 
-// ideally set up the tracer more explicitly?
-// process.env.LANGSMITH_TRACING="true";
-// process.env.LANGSMITH_API_KEY="{{LANGSMITH_API_KEY}}";
+process.env.LANGCHAIN_TRACING_V2 = 'true';
+process.env.LANGSMITH_TRACING = 'true';
+process.env.LANGSMITH_API_KEY = SecretAgent.config.LANGSMITH_API_KEY;
 
 /**
  * Initialize the agent with CDP Agentkit
@@ -36,7 +36,7 @@ async function initializeAgent() {
     // Initialize LLM
     const llm = new ChatOpenAI({
       model: 'gpt-4o-mini',
-      apiKey: '{{LLM_KEY}}', // will be replaced/injected in proxy
+      apiKey: SecretAgent.config.LLM_API_KEY, // will be replaced/injected in proxy
     });
 
     let walletDataStr: string | null = null;
@@ -73,6 +73,8 @@ async function initializeAgent() {
       agentLabel: 'cdp agentkit example',
       signMessage: (msg) => walletProvider.signMessage(msg),
     });
+
+    console.log('static config fetched from SecretAgent', SecretAgent.config.STATIC_TEST);
 
     // Initialize AgentKit
     const agentkit = await AgentKit.from({

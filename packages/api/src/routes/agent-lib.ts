@@ -3,6 +3,7 @@ import { HonoEnv } from '../lib/middlewares';
 import { eq } from 'drizzle-orm';
 import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
 import { ethers } from 'ethers';
+import { checkUrlInPatternList } from '../lib/url-pattern-utils';
 
 export const agentLibRoutes = new Hono<
   HonoEnv & {
@@ -26,7 +27,6 @@ agentLibRoutes.use(async (c, next) => {
   }
 
   const agentId = await ethers.verifyMessage(`${projectId}//${timestampStr}`, sig);
-  console.log('verified agent id =', agentId);
 
   const db = c.var.db;
 
@@ -79,16 +79,20 @@ agentLibRoutes.get('/project-metadata', async (c) => {
   const configItems = c.var.configItems;
 
   const domainPatterns = new Set<string>();
+  const staticConfig = {} as Record<string, string>;
   for (const configItem of configItems) {
     if (configItem.itemType === 'llm') {
       domainPatterns.add('api.openai.com');
-    } else {
-      // configItem.settings.
+    } else if (configItem.itemType === 'proxy') {
+      configItem.settings?.matchUrl?.forEach((m) => domainPatterns.add(m));
+    } else if (configItem.itemType === 'static') {
+      staticConfig[configItem.key] = configItem.value;
     }
   }
 
   return c.json({
-    proxyDomains: Array.from(domainPatterns),
+    proxyUrls: Array.from(domainPatterns),
+    staticConfig,
   });
 });
 
@@ -100,19 +104,34 @@ agentLibRoutes.post('/proxy', async (c) => {
     return c.json({ error: 'Missing required header `sa-original-url`' }, 400);
   }
 
-  console.log('SA PROXY', originalMethod, originalUrl);
-
   // fill in our secrets
   const headers = c.req.header();
   let headersJsonStr = JSON.stringify(headers);
 
-  // TODO fetch project settings and replace keys accordingly
-  // should first check if url matches pattern and replace relevant keys only
-  headersJsonStr = headersJsonStr.replace('{{LLM_KEY}}', DMNO_CONFIG.MASTER_OPENAI_API_KEY);
-  headersJsonStr = headersJsonStr.replace(
-    '{{LANGSMITH_API_KEY}}',
-    DMNO_CONFIG.MASTER_LANGSMITH_API_KEY
-  );
+  const configItems = c.var.configItems;
+
+  let isLlmSharedKeyRequest = false;
+
+  for (const configItem of configItems) {
+    if (configItem.itemType === 'llm') {
+      if (checkUrlInPatternList(originalUrl, ['api.openai.com'])) {
+        const key = `$$${configItem.key}$$`;
+        if (headersJsonStr.includes(key)) {
+          isLlmSharedKeyRequest = true;
+          // TODO: record usage of the key
+          headersJsonStr = headersJsonStr.replaceAll(key, DMNO_CONFIG.MASTER_OPENAI_API_KEY);
+        }
+      }
+    } else if (configItem.itemType === 'proxy') {
+      if (checkUrlInPatternList(originalUrl, configItem.settings?.matchUrl || [])) {
+        const key = `$$${configItem.key}$$`;
+        if (headersJsonStr.includes(key)) {
+          // TODO: record usage of the key
+          headersJsonStr = headersJsonStr.replaceAll(key, configItem.value);
+        }
+      }
+    }
+  }
 
   const headersJson = JSON.parse(headersJsonStr);
   delete headersJson['sa-agent-auth'];
@@ -124,7 +143,7 @@ agentLibRoutes.post('/proxy', async (c) => {
   let bodyToSend: string | Blob | undefined;
   if (headersJson['content-type'] === 'application/json') {
     // example showing changing the model in the proxy
-    let reqBodyObj = await c.req.json();
+    const reqBodyObj = await c.req.json();
     if (reqBodyObj.model) {
       reqBodyObj.model = 'gpt-4o-mini';
     }
@@ -135,29 +154,27 @@ agentLibRoutes.post('/proxy', async (c) => {
 
   // TODO: do we want to substitution in request body too?
   // note - if we mess with the body, we'll have to adjust content-length header
-
   // TODO: do we want to do any substitution in URL?
 
   // make fetch call to original url
-  const llmResult = await fetch(originalUrl, {
+  const proxiedReqResult = await fetch(originalUrl, {
     method: originalMethod,
     headers: headersJson,
     ...(bodyToSend && { body: bodyToSend }),
   });
 
-  const resBodyText = await llmResult.text();
+  if (isLlmSharedKeyRequest) {
+    // TODO: record usage/tokens
+  }
 
-  const resultContentType = llmResult.headers.get('content-type');
+  const resBodyText = await proxiedReqResult.text();
+
+  const resultContentType = proxiedReqResult.headers.get('content-type');
   if (resultContentType) c.header('content-type', resultContentType);
 
-  // console.log('llm response', {
-  //   statusCode: llmResult.status,
-  //   contentType: resultContentType,
-  // })
-
-  if (llmResult.status !== 200) {
+  if (proxiedReqResult.status !== 200) {
     console.log('Error!', resBodyText);
   }
 
-  return c.body(resBodyText, llmResult.status as any);
+  return c.body(resBodyText, proxiedReqResult.status as any);
 });

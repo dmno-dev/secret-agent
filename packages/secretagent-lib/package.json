@@ -4,8 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
+    "dev": "dmno run -w -- tsup --watch",
+    "build": "dmno run -- tsup",
+    "prepublish": "SECRETAGENT_ENV=production pnpm run build"
   },
   "keywords": [],
   "author": "",
@@ -16,9 +17,10 @@
   "main": "dist/index.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "ts-src": "./src/index.ts",
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
   "dependencies": {
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
+    "dmno": "^0.0.37",
     "tsup": "^8.3.6"
   }
 }
