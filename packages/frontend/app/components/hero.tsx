@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTypingEffect } from '../../hooks/use-typing-effect';
 
 export function Hero() {
-  const title = useTypingEffect('Welcome to SecretAgent.sh', 50);
+  // const title = useTypingEffect('Welcome to SecretAgent.sh', 50);
   const [showSubtitle, setShowSubtitle] = useState(false);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export function Hero() {
 
   return (
     <section className="mb-8">
-      <h1 className="text-4xl font-bold mb-4 font-mono">{title}</h1>
+      {/* <h1 className="text-4xl font-bold mb-4 font-mono">{title}</h1> */}
       <p className="text-xl mb-4 h-7 terminal-cursor font-mono">{subtitle}</p>
       <p className="text-gray-400">
         SecretAgent.sh provides a zero-trust secrets management platform for AI Agents, including
