@@ -5,8 +5,7 @@ import { setTimeout } from 'node:timers/promises';
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
-// TODO: swap to prod url
-const SECRETAGENT_API_URL = 'https://localhost:8881/api';
+const SECRETAGENT_API_URL = DMNO_CONFIG.SECRETAGENT_API_URL;
 
 type ProjectMetadata = {
   proxyDomains: Array<string>;
