@@ -1,8 +1,5 @@
-import { DmnoBaseTypes, defineDmnoService, pick, pickFromSchemaObject, switchBy } from 'dmno';
-import { EncryptedVaultDmnoPlugin } from '@dmno/encrypted-vault-plugin';
-import { CloudflareWranglerEnvSchema, DmnoWranglerEnvSchema } from '@dmno/cloudflare-platform';
-
-const encryptedVault = EncryptedVaultDmnoPlugin.injectInstance('vault'); // inject vault from root
+import { DmnoWranglerEnvSchema } from '@dmno/cloudflare-platform';
+import { defineDmnoService, pick, pickFromSchemaObject, switchBy } from 'dmno';
 
 export default defineDmnoService({
   name: 'api',
@@ -12,8 +9,8 @@ export default defineDmnoService({
     SECRETAGENT_API_URL: {
       extends: 'url',
       value: switchBy('SECRETAGENT_ENV', {
-        local: () => DMNO_CONFIG.WRANGLER_DEV_URL,
-        production: 'https://api.secretagent.sh',
+        local: () => `${DMNO_CONFIG.WRANGLER_DEV_URL}/api`,
+        production: 'https://secretagent.sh/api',
       }),
       required: true,
     },

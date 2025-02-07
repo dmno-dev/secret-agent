@@ -6,7 +6,8 @@
     "dev": "dmno run -w -- next dev --experimental-https",
     "build": "dmno run -- next build",
     "start": "dmno run -- next start",
-    "lint": "dmno run -- next lint"
+    "lint": "dmno run -- next lint",
+    "lint:fix": "dmno run -- next lint --fix"
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.36.9",

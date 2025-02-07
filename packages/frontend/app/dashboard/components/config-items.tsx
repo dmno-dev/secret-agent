@@ -1,20 +1,19 @@
 'use client';
 
+import { secretAgentApi } from '@/lib/api';
+import { ConfigItem } from '@/lib/types';
 import { ChevronDown, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
 import { MiniLineChart } from './charts/mini-line-chart';
 
-interface ConfigItem {
-  id: string;
-  name: string;
-  value?: string;
-  createdAt: string;
-  lastUsed?: string;
-  usageData: Array<{ date: string; value: number }>;
+interface ConfigItemsProps {
+  configItems: ConfigItem[];
+  projectId: string;
 }
 
-export function ConfigItems() {
+export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,115 +21,141 @@ export function ConfigItems() {
   // Mock data - replace with real data later
   const [items, setItems] = useState<ConfigItem[]>([
     {
-      id: '1',
-      name: 'OPENAI_API_KEY',
+      key: 'OPENAI_API_KEY',
       value: 'sk-1234567890abcdef',
       createdAt: '2024-03-15',
-      lastUsed: '2024-03-20',
+      projectId: 'project-1',
+      itemType: 'user',
+      settings: null,
       usageData: [
-        { date: '2024-03-14', value: 10 },
-        { date: '2024-03-15', value: 25 },
-        { date: '2024-03-16', value: 15 },
-        { date: '2024-03-17', value: 30 },
-        { date: '2024-03-18', value: 20 },
-        { date: '2024-03-19', value: 35 },
-        { date: '2024-03-20', value: 25 },
+        {
+          date: '2024-03-15',
+          value: 10,
+        },
+        {
+          date: '2024-03-16',
+          value: 20,
+        },
+        {
+          date: '2024-03-17',
+          value: 30,
+        },
       ],
     },
     {
-      id: '2',
-      name: 'ANTHROPIC_API_KEY',
+      key: 'ANTHROPIC_API_KEY',
       value: 'sk-ant-123456789',
       createdAt: '2024-03-10',
+      projectId: 'project-1',
+      itemType: 'user',
+      settings: null,
       usageData: [
-        { date: '2024-03-14', value: 5 },
-        { date: '2024-03-15', value: 15 },
-        { date: '2024-03-16', value: 10 },
-        { date: '2024-03-17', value: 20 },
-        { date: '2024-03-18', value: 15 },
-        { date: '2024-03-19', value: 25 },
-        { date: '2024-03-20', value: 20 },
+        {
+          date: '2024-03-15',
+          value: 10,
+        },
+        {
+          date: '2024-03-16',
+          value: 20,
+        },
+        {
+          date: '2024-03-17',
+          value: 30,
+        },
       ],
     },
   ]);
 
-  const toggleExpand = (id: string) => {
-    setExpandedItem(expandedItem === id ? null : id);
+  const toggleExpand = (key: string) => {
+    setExpandedItem(expandedItem === key ? null : key);
   };
 
-  const toggleShowValue = (id: string) => {
-    setShowValues((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleShowValue = (key: string) => {
+    setShowValues((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleAddKey = (data: NewKeyFormData) => {
-    // TODO: Add API call to create new key
-    const newItem: ConfigItem = {
-      id: Date.now().toString(),
-      name: data.name,
-      value: data.shared ? undefined : data.value,
-      createdAt: new Date().toISOString().split('T')[0],
-      usageData: [],
-    };
+  const handleAddKey = async (data: NewKeyFormData) => {
+    try {
+      if (!data.shared && !data.value) {
+        throw new Error('Value is required when not shared');
+      }
 
-    setItems((prev) => [...prev, newItem]);
-    setShowAddModal(false);
+      const configItem: ConfigItem = {
+        key: data.name,
+        value: data.shared ? null : data.value!,
+        createdAt: new Date().toISOString(),
+        projectId: projectId,
+        itemType: 'user',
+        settings: null,
+        usageData: [],
+      };
+
+      await secretAgentApi.post(`projects/${projectId}/config`, {
+        json: configItem,
+      });
+
+      toast.success('Config item created successfully');
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error creating config item:', error);
+      toast.error('Failed to create config item');
+    }
   };
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        {items.map((item) => (
+        {configItems.map((item) => (
           <div
-            key={item.id}
+            key={item.key}
             className="border border-gray-300 dark:border-green-400 rounded-lg overflow-hidden"
           >
             <div
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900"
-              onClick={() => toggleExpand(item.id)}
+              onClick={() => toggleExpand(item.key)}
             >
               <div className="flex items-center space-x-2">
-                {expandedItem === item.id ? (
+                {expandedItem === item.key ? (
                   <ChevronDown className="w-4 h-4 text-gray-500 dark:text-green-400" />
                 ) : (
                   <ChevronRight className="w-4 h-4 text-gray-500 dark:text-green-400" />
                 )}
-                <span className="font-medium">{item.name}</span>
+                <span className="font-medium">{item.key}</span>
+                <span className="text-sm text-gray-500">({item.itemType})</span>
               </div>
-              <div className="flex items-center space-x-4">
-                <MiniLineChart data={item.usageData} />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleShowValue(item.id);
-                  }}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  {showValues[item.id] ? (
-                    <EyeOff className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                  )}
-                </button>
-              </div>
+              <MiniLineChart data={item.usageData} />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleShowValue(item.key);
+                }}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+              >
+                {showValues[item.key] ? (
+                  <EyeOff className="w-4 h-4 text-gray-500 dark:text-green-400" />
+                ) : (
+                  <Eye className="w-4 h-4 text-gray-500 dark:text-green-400" />
+                )}
+              </button>
             </div>
 
-            {expandedItem === item.id && (
+            {expandedItem === item.key && (
               <div className="p-4 border-t border-gray-300 dark:border-green-400 bg-gray-50 dark:bg-gray-900">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 dark:text-green-600">Value:</span>
                     <span className="font-mono text-sm">
-                      {showValues[item.id] ? item.value : '••••••••••••••••'}
+                      {showValues[item.key] ? item.value : '••••••••••••••••'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 dark:text-green-600">Created:</span>
-                    <span className="text-sm">{item.createdAt}</span>
+                    <span className="text-sm">{new Date(item.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {item.lastUsed && (
+                  {item.settings && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500 dark:text-green-600">Last used:</span>
-                      <span className="text-sm">{item.lastUsed}</span>
+                      <span className="text-sm text-gray-500 dark:text-green-600">Settings:</span>
+                      <span className="text-sm font-mono">{JSON.stringify(item.settings)}</span>
                     </div>
                   )}
                   <div className="flex justify-end space-x-2 mt-4">

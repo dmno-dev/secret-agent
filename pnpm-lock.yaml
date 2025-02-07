@@ -42,6 +42,9 @@ importers:
       prettier:
         specifier: ^3.2.5
         version: 3.4.2
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
 
   examples/langchain:
     dependencies:

@@ -39,13 +39,11 @@ export function FundProject({ projectId }: { projectId: string }) {
           // Reset amount after successful transaction
           setAmount('');
           break;
-        case 'error': {
-          const errorData = status.statusData;
+        case 'error':
           toast.error('Transaction failed', {
-            description: errorData.message || 'Please try again',
+            description: status.statusData.message || 'Please try again',
           });
           break;
-        }
         default:
           break;
       }

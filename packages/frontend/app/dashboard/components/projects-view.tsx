@@ -6,9 +6,9 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NewProjectModal } from './new-project-modal';
+import { ProjectCard } from './project-card';
 import { ProjectDetails } from './project-details';
 import { ProjectSkeleton } from './project-skeleton';
-import { ProjectCard } from './project-card';
 
 export function ProjectsView() {
   const [projects, setProjects] = useState<Project[]>([]);

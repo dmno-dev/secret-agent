@@ -1,16 +1,17 @@
 {
   "name": "@secretagent.sh/api",
+  "description": "SecretAgent.sh api",
   "private": true,
   "scripts": {
     "dev": "dwrangler dev --local-protocol https --local --env local --https-key-path ../frontend/certificates/localhost-key.pem --https-cert-path ../frontend/certificates/localhost.pem",
-    "deploy": "dwrangler deploy --minify",
+    "deploy:production": "pnpm run --filter @secretagent.sh/frontend build && dmno run -- dwrangler deploy --env production",
     "db:generate": "drizzle-kit generate",
     "db:regenerate": "drizzle-kit drop && drizzle-kit generate",
     "db:nuke:local": "rm -rf .wrangler/state/v3/d1",
-    "db:migrate:local": "wrangler d1 migrations apply secret-agent-dev --local --env local",
+    "db:migrate:local": "dmno run -- dwrangler d1 migrations apply secret-agent-dev --local --env local",
     "db:reset:local": "pnpm run db:nuke:local && pnpm run db:migrate:local",
-    "db:migrate:prod": "wrangler d1 migrations apply secret-agent-prod --remote",
-    "db:migrate:preview": "wrangler d1 migrations apply --env preview secret-agent-preview --remote",
+    "db:migrate:prod": "dmno run -- dwrangler d1 migrations apply secret-agent-prod --remote --env production",
+    "db:migrate:preview": "dmno run -- dwrangler d1 migrations apply --env preview secret-agent-preview --remote --env preview",
     "db:studio:local": "LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print -quit) drizzle-kit studio",
     "db:studio:preview": "source .drizzle.env && DB_ID='yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy' drizzle-kit studio",
     "db:studio:prod": "source .drizzle.env && DB_ID='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' drizzle-kit studio"
