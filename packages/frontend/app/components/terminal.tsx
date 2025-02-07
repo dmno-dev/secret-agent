@@ -1,13 +1,15 @@
 'use client';
 
 import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
-import { Moon, Sun } from 'lucide-react';
+import { HelpCircle, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { WalletButton } from './wallet-button';
+import { useState } from 'react';
+import { DocsModal } from '../dashboard/components/docs-modal';
 
 interface TerminalProps {
   children: React.ReactNode;
@@ -19,6 +21,7 @@ export function Terminal({ children }: TerminalProps) {
   const { disconnect } = useDisconnect();
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith('/dashboard');
+  const [showDocs, setShowDocs] = useState(false);
 
   function logout() {
     disconnect();
@@ -64,6 +67,13 @@ export function Terminal({ children }: TerminalProps) {
           <div className="flex items-center space-x-4">
             <WalletButton />
             <button
+              onClick={() => setShowDocs(true)}
+              className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
+              title="View Documentation"
+            >
+              <HelpCircle size={20} />
+            </button>
+            <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
             >
@@ -74,6 +84,7 @@ export function Terminal({ children }: TerminalProps) {
         <div className="p-4 bg-gray-100 dark:bg-gray-900 transition-colors duration-100">
           {children}
         </div>
+        {showDocs && <DocsModal onClose={() => setShowDocs(false)} initialTab="quickstart" />}
       </div>
     </div>
   );
