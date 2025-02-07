@@ -104,6 +104,7 @@ agentRoutes.patch(
         label: body.label,
         status: body.status,
       })
+      .where(eq(projectAgentsTable.id, c.req.param('agentId')))
       .returning();
 
     return c.json(updatedAgent);

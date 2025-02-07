@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { configItemsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
+import { eq } from 'drizzle-orm';
 
 export const configItemRoutes = new Hono<HonoEnv>();
 
@@ -61,5 +62,19 @@ configItemRoutes.patch(
       .returning();
 
     return c.json(updatedItem);
+  }
+);
+
+// delete config item
+configItemRoutes.delete(
+  '/projects/:projectId/config-items/:configItemKey',
+  projectIdMiddleware,
+  async (c) => {
+    const db = c.var.db;
+    const configItemKey = c.req.param('configItemKey');
+
+    await db.delete(configItemsTable).where(eq(configItemsTable.key, configItemKey));
+
+    return c.json({ message: 'Config item deleted' });
   }
 );
