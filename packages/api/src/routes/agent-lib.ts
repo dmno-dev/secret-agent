@@ -1,8 +1,8 @@
-import { Hono } from 'hono';
-import { HonoEnv } from '../lib/middlewares';
 import { eq } from 'drizzle-orm';
-import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
 import { ethers } from 'ethers';
+import { Hono } from 'hono';
+import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
+import { HonoEnv } from '../lib/middlewares';
 import { checkUrlInPatternList } from '../lib/url-pattern-utils';
 
 export const agentLibRoutes = new Hono<
@@ -74,8 +74,6 @@ agentLibRoutes.use(async (c, next) => {
 
 // endpoint used by client lib to fetch minimal project metadata
 agentLibRoutes.get('/project-metadata', async (c) => {
-  const db = c.var.db;
-
   const configItems = c.var.configItems;
 
   const domainPatterns = new Set<string>();
@@ -84,7 +82,7 @@ agentLibRoutes.get('/project-metadata', async (c) => {
     if (configItem.itemType === 'llm') {
       domainPatterns.add('api.openai.com');
     } else if (configItem.itemType === 'proxy') {
-      configItem.settings?.matchUrl?.forEach((m) => domainPatterns.add(m));
+      configItem.settings?.matchUrl?.forEach((m: string) => domainPatterns.add(m));
     } else if (configItem.itemType === 'static') {
       staticConfig[configItem.key] = configItem.value;
     }

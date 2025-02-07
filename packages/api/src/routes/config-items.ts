@@ -5,9 +5,8 @@ import { z } from 'zod';
 
 import { configItemsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
-import { projectIdMiddleware } from './project';
-
 import { serializeConfigItem } from '../lib/serializers';
+import { projectIdMiddleware } from './project';
 
 export const configItemRoutes = new Hono<HonoEnv>();
 
@@ -17,7 +16,11 @@ const configItemUpdateSchema = z.object({
   // TODO: refine based on itemType
   value: z.string().optional(),
   llmSettings: z.object({}).optional(),
-  proxySettings: z.object({}).optional(),
+  proxySettings: z
+    .object({
+      matchUrl: z.array(z.string()),
+    })
+    .optional(),
 });
 
 // create new config item
@@ -62,7 +65,6 @@ configItemRoutes.patch(
     const updatedItem = await db
       .update(configItemsTable)
       .set({
-        // copied from POST above
         key: body.key,
         itemType: body.itemType,
         ...(body.itemType !== 'llm' &&

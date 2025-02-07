@@ -33,13 +33,15 @@ export type ConfigItem = BaseConfigItem &
       }
     | {
         itemType: 'proxy';
+        value: string;
         maskedValue: string;
         proxySettings: {
-          matchUrls: string[];
+          matchUrl: string[];
         };
       }
     | {
         itemType: 'static';
+        value: string;
         maskedValue: string;
       }
   );
@@ -58,7 +60,7 @@ export type ConfigItemCreate = BaseConfigItemCreate &
         itemType: 'proxy';
         value: string;
         proxySettings: {
-          matchUrls: string[];
+          matchUrl: string[];
         };
       }
     | {

@@ -1,28 +1,45 @@
 'use client';
 
-import { X } from 'lucide-react';
-import { useState } from 'react';
+import { ConfigItem } from '@/lib/types';
+import { Eye, EyeOff, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export type NewKeyFormData = {
   name: string;
   type: 'llm' | 'proxy' | 'static';
   value?: string;
-  matchUrls?: string[];
+  matchUrl?: string[];
+  matchUrlInput?: string;
 };
 
-interface AddKeyModalProps {
+export interface AddKeyModalProps {
   onClose: () => void;
   onSubmit: (data: NewKeyFormData) => void;
+  editingItem?: ConfigItem | null;
 }
 
-export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
+export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps) {
   const [formData, setFormData] = useState<NewKeyFormData>({
     name: '',
     type: 'llm',
-    value: '',
-    matchUrls: [],
+    matchUrlInput: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (editingItem) {
+      setFormData({
+        name: editingItem.key,
+        type: editingItem.itemType,
+        value: '', // We don't show the existing value for security
+        matchUrlInput:
+          editingItem.itemType === 'proxy'
+            ? editingItem.proxySettings?.matchUrl?.join(', ') || ''
+            : '',
+      });
+    }
+  }, [editingItem]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,22 +49,30 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
       return;
     }
 
-    onSubmit(formData);
-  };
+    if (formData.type === 'proxy') {
+      const matchUrl = formData.matchUrlInput
+        ?.split(',')
+        .map((url) => url.trim())
+        .filter(Boolean);
 
-  const handleMatchUrlsChange = (value: string) => {
-    const urls = value
-      .split(',')
-      .map((url) => url.trim())
-      .filter(Boolean);
-    setFormData((prev) => ({ ...prev, matchUrls: urls }));
+      if (!matchUrl || matchUrl.length === 0) {
+        toast.error('At least one match URL is required for proxy keys');
+        return;
+      }
+
+      onSubmit({ ...formData, matchUrl });
+    } else {
+      onSubmit(formData);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[500px] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold dark:text-green-400">Add New Config Item</h3>
+          <h3 className="text-xl font-bold dark:text-green-400">
+            {editingItem ? 'Edit Config Item' : 'Add New Config Item'}
+          </h3>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
@@ -68,6 +93,7 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
               placeholder="e.g., OPENAI_API_KEY"
+              disabled={!!editingItem}
             />
           </div>
 
@@ -84,6 +110,7 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
                     ? 'bg-green-500 text-white dark:bg-green-600'
                     : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
+                disabled={!!editingItem}
               >
                 LLM
               </button>
@@ -95,6 +122,7 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
                     ? 'bg-green-500 text-white dark:bg-green-600'
                     : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
+                disabled={!!editingItem}
               >
                 Proxy
               </button>
@@ -106,6 +134,7 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
                     ? 'bg-green-500 text-white dark:bg-green-600'
                     : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
+                disabled={!!editingItem}
               >
                 Static
               </button>
@@ -124,14 +153,23 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
               <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
                 Value
               </label>
-              <input
-                type="text"
-                required
-                value={formData.value}
-                onChange={(e) => setFormData((prev) => ({ ...prev, value: e.target.value }))}
-                className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
-                placeholder="Enter key value"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.value}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, value: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent pr-10"
+                  placeholder={editingItem ? 'Enter new value' : 'Enter value'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           )}
 
@@ -143,8 +181,10 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
               <input
                 type="text"
                 required
-                value={formData.matchUrls?.join(', ')}
-                onChange={(e) => handleMatchUrlsChange(e.target.value)}
+                value={formData.matchUrlInput}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, matchUrlInput: e.target.value }))
+                }
                 className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
                 placeholder="*.example.com, app.domain.com"
               />
@@ -166,7 +206,7 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
               type="submit"
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
             >
-              Save
+              {editingItem ? 'Update' : 'Save'}
             </button>
           </div>
         </form>

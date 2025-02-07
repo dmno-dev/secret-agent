@@ -5,8 +5,8 @@ import {
   useDeleteConfigItem,
   useUpdateConfigItem,
 } from '@/lib/hooks/use-config-items';
-import { ConfigItem } from '@/lib/types';
-import { ChevronDown, ChevronRight, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { ConfigItem, ConfigItemCreate } from '@/lib/types';
+import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
@@ -19,8 +19,8 @@ interface ConfigItemsProps {
 
 export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<ConfigItem | null>(null);
 
   const createConfigItem = useCreateConfigItem(projectId);
   const updateConfigItem = useUpdateConfigItem(projectId);
@@ -28,10 +28,6 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
 
   const toggleExpand = (key: string) => {
     setExpandedItem(expandedItem === key ? null : key);
-  };
-
-  const toggleShowValue = (key: string) => {
-    setShowValues((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleAddKey = async (data: NewKeyFormData) => {
@@ -51,7 +47,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
             itemType: 'proxy' as const,
             value: data.value || '',
             proxySettings: {
-              matchUrls: data.matchUrls || [],
+              matchUrl: data.matchUrl || [],
             },
           };
           break;
@@ -64,12 +60,27 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
           break;
       }
 
-      await createConfigItem.mutateAsync(configItem);
-      toast.success('Config item created successfully');
+      if (editingItem) {
+        if (
+          data.type === 'proxy' &&
+          (!data.matchUrl || data.matchUrl.length === 0) &&
+          editingItem.itemType === 'proxy'
+        ) {
+          const proxyConfig = configItem as ConfigItemCreate & { itemType: 'proxy' };
+          proxyConfig.proxySettings.matchUrl = editingItem.proxySettings?.matchUrl || [];
+          configItem = proxyConfig;
+        }
+        await updateConfigItem.mutateAsync({ key: editingItem.key, data: configItem });
+        toast.success('Config item updated successfully');
+      } else {
+        await createConfigItem.mutateAsync(configItem);
+        toast.success('Config item created successfully');
+      }
       setShowAddModal(false);
+      setEditingItem(null);
     } catch (error) {
-      console.error('Error creating config item:', error);
-      toast.error('Failed to create config item');
+      console.error('Error saving config item:', error);
+      toast.error('Failed to save config item');
     }
   };
 
@@ -87,6 +98,11 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
     }
   };
 
+  const handleEditItem = (item: ConfigItem) => {
+    setEditingItem(item);
+    setShowAddModal(true);
+  };
+
   const isLoading =
     createConfigItem.isPending || updateConfigItem.isPending || deleteConfigItem.isPending;
 
@@ -98,11 +114,11 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
             key={item.key}
             className="border border-gray-300 dark:border-green-400 rounded-lg overflow-hidden"
           >
-            <div
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900"
-              onClick={() => toggleExpand(item.key)}
-            >
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between p-4">
+              <div
+                className="flex-1 flex items-center space-x-2 cursor-pointer"
+                onClick={() => toggleExpand(item.key)}
+              >
                 {expandedItem === item.key ? (
                   <ChevronDown className="w-4 h-4 text-gray-500 dark:text-green-400" />
                 ) : (
@@ -111,20 +127,9 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                 <span className="font-medium">{item.key}</span>
                 <span className="text-sm text-gray-500">({item.itemType})</span>
               </div>
-              {item.usageData && <MiniLineChart data={item.usageData} />}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleShowValue(item.key);
-                }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-              >
-                {showValues[item.key] ? (
-                  <EyeOff className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                ) : (
-                  <Eye className="w-4 h-4 text-gray-500 dark:text-green-400" />
-                )}
-              </button>
+              <div className="flex items-center space-x-2">
+                <MiniLineChart data={item.usageData} />
+              </div>
             </div>
 
             {expandedItem === item.key && (
@@ -133,55 +138,37 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                   {(item.itemType === 'proxy' || item.itemType === 'static') && (
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500 dark:text-green-600">Value:</span>
-                      <span className="font-mono text-sm">
-                        {showValues[item.key] ? item.maskedValue : '••••••••••••••••'}
-                      </span>
+                      <span className="font-mono text-sm">{item.maskedValue}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 dark:text-green-600">Created:</span>
                     <span className="text-sm">{new Date(item.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {item.itemType === 'llm' && item.llmSettings && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500 dark:text-green-600">
-                        LLM Settings:
-                      </span>
-                      <span className="text-sm font-mono">{JSON.stringify(item.llmSettings)}</span>
-                    </div>
-                  )}
+
                   {item.itemType === 'proxy' && item.proxySettings && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500 dark:text-green-600">
-                        Proxy Settings:
-                      </span>
+                      <span className="text-sm text-gray-500 dark:text-green-600">Proxy URLs:</span>
                       <span className="text-sm font-mono">
-                        {JSON.stringify(item.proxySettings)}
+                        {item.proxySettings.matchUrl?.join(', ') || 'No URLs configured'}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-end space-x-2 mt-4">
                     <button
-                      disabled={isLoading}
-                      className="text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Revoke
-                    </button>
-                    <button
+                      onClick={() => handleEditItem(item)}
                       disabled={isLoading}
                       className="text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Rotate
+                      Update Value
                     </button>
-                  </div>
-                  <div className="flex justify-end">
                     <button
                       onClick={() => handleDeleteConfigItem(item.key)}
                       disabled={isLoading}
                       className="flex items-center space-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>Delete Key</span>
+                      <span>Delete</span>
                     </button>
                   </div>
                 </div>
@@ -201,7 +188,14 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
       </button>
 
       {showAddModal && (
-        <AddKeyModal onClose={() => setShowAddModal(false)} onSubmit={handleAddKey} />
+        <AddKeyModal
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingItem(null);
+          }}
+          onSubmit={handleAddKey}
+          editingItem={editingItem}
+        />
       )}
     </div>
   );

@@ -16,7 +16,6 @@ interface ProjectDetailsProps {
 
 export function ProjectDetails({ project }: ProjectDetailsProps) {
   const { data, isLoading, error } = useProjectDetails(project.id);
-  console.log('data', data);
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(project.id);
