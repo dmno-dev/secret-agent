@@ -21,10 +21,8 @@ export interface ConfigItem {
   projectId: string;
   key: string;
   itemType: 'llm' | 'user';
-  settings: {
-    foo: string;
-  } | null;
-  usageData: {
+  settings?: Record<string, unknown>;
+  usageData?: {
     date: string;
     value: number;
   }[];

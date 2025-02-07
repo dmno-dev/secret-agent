@@ -2,7 +2,7 @@
 
 import { secretAgentApi } from '@/lib/api';
 import { ConfigItem } from '@/lib/types';
-import { ChevronDown, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
@@ -17,54 +17,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState(false);
-
-  // Mock data - replace with real data later
-  const [items, setItems] = useState<ConfigItem[]>([
-    {
-      key: 'OPENAI_API_KEY',
-      value: 'sk-1234567890abcdef',
-      createdAt: '2024-03-15',
-      projectId: 'project-1',
-      itemType: 'user',
-      settings: null,
-      usageData: [
-        {
-          date: '2024-03-15',
-          value: 10,
-        },
-        {
-          date: '2024-03-16',
-          value: 20,
-        },
-        {
-          date: '2024-03-17',
-          value: 30,
-        },
-      ],
-    },
-    {
-      key: 'ANTHROPIC_API_KEY',
-      value: 'sk-ant-123456789',
-      createdAt: '2024-03-10',
-      projectId: 'project-1',
-      itemType: 'user',
-      settings: null,
-      usageData: [
-        {
-          date: '2024-03-15',
-          value: 10,
-        },
-        {
-          date: '2024-03-16',
-          value: 20,
-        },
-        {
-          date: '2024-03-17',
-          value: 30,
-        },
-      ],
-    },
-  ]);
+  const [configItemsState, setConfigItems] = useState<ConfigItem[]>(configItems);
 
   const toggleExpand = (key: string) => {
     setExpandedItem(expandedItem === key ? null : key);
@@ -82,23 +35,36 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
 
       const configItem: ConfigItem = {
         key: data.name,
-        value: data.shared ? null : data.value!,
+        value: data.shared ? '' : data.value!,
         createdAt: new Date().toISOString(),
         projectId: projectId,
         itemType: 'user',
-        settings: null,
-        usageData: [],
       };
 
-      await secretAgentApi.post(`projects/${projectId}/config`, {
+      await secretAgentApi.post(`projects/${projectId}/config-items`, {
         json: configItem,
       });
 
+      setConfigItems((prev) => [...prev, configItem]);
       toast.success('Config item created successfully');
       setShowAddModal(false);
     } catch (error) {
       console.error('Error creating config item:', error);
       toast.error('Failed to create config item');
+    }
+  };
+
+  const handleDeleteConfigItem = async (key: string) => {
+    try {
+      await secretAgentApi.delete(`projects/${projectId}/config-items/${key}`);
+
+      // Remove the item from the local state
+      setConfigItems((prev) => prev.filter((item) => item.key !== key));
+
+      toast.success('Config item deleted successfully');
+    } catch (error) {
+      console.error('Error deleting config item:', error);
+      toast.error('Failed to delete config item');
     }
   };
 
@@ -123,7 +89,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                 <span className="font-medium">{item.key}</span>
                 <span className="text-sm text-gray-500">({item.itemType})</span>
               </div>
-              <MiniLineChart data={item.usageData} />
+              {item.usageData && <MiniLineChart data={item.usageData} />}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -164,6 +130,15 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                     </button>
                     <button className="text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800">
                       Rotate
+                    </button>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleDeleteConfigItem(item.key)}
+                      className="flex items-center space-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Key</span>
                     </button>
                   </div>
                 </div>

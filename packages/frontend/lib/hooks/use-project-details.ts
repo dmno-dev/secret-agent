@@ -63,7 +63,7 @@ export function useCreateAgent() {
       const response = await secretAgentApi.post(`projects/${projectId}/agents`, {
         json: {
           label,
-          walletAddress,
+          id: walletAddress,
         },
       });
 
