@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 import { createPrivyServerWallet } from '../lib/privy';
 import { configItemsTable, projectsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
-import { serializeConfigItem } from './config-items';
+import { serializeConfigItem } from '../lib/serializers';
 
 export const projectRoutes = new Hono<HonoEnv>();
 

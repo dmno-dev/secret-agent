@@ -1,11 +1,13 @@
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { Hono } from 'hono';
+import { and, eq } from 'drizzle-orm';
 
 import { configItemsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
-import { and, eq, InferSelectModel } from 'drizzle-orm';
+
+import { serializeConfigItem } from '../lib/serializers';
 
 export const configItemRoutes = new Hono<HonoEnv>();
 
@@ -17,25 +19,6 @@ const configItemUpdateSchema = z.object({
   llmSettings: z.object().optional(),
   proxySettings: z.object().optional(),
 });
-
-type ConfigItem = InferSelectModel<typeof configItemsTable>;
-
-export function serializeConfigItem(configItem: ConfigItem) {
-  return {
-    key: configItem.key,
-    itemType: configItem.itemType,
-    createdAt: configItem.createdAt,
-    ...(configItem.itemType === 'llm' && {
-      llmSettings: configItem.settings,
-    }),
-    ...(configItem.itemType === 'proxy' && {
-      proxySettings: configItem.settings,
-    }),
-    ...(['proxy', 'static'].includes(configItem.itemType) && {
-      maskedValue: configItem.value?.slice(2) + '****' + configItem.value?.slice(-2),
-    }),
-  };
-}
 
 // create new config item
 configItemRoutes.post(
