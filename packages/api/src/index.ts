@@ -5,8 +5,8 @@ import { HonoEnv, initCommonMiddlewares } from './lib/middlewares';
 import { agentLibRoutes } from './routes/agent-lib';
 import { agentRoutes } from './routes/agents';
 import { authRoutes } from './routes/auth';
-import { configItemRoutes } from './routes/config-items';
 import { projectRoutes } from './routes/project';
+import { configItemRoutes } from './routes/config-items';
 
 const app = new Hono<HonoEnv>().basePath('/api');
 
