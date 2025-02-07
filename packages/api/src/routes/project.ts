@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm';
 import { createPrivyServerWallet } from '../lib/privy';
 import { configItemsTable, projectsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
+import { serializeConfigItem } from './config-items';
 
 export const projectRoutes = new Hono<HonoEnv>();
 
@@ -95,7 +96,7 @@ projectRoutes.get('/projects/:projectId', projectIdMiddleware, async (c) => {
   return c.json({
     project,
     agents,
-    configItems,
+    configItems: configItems.map(serializeConfigItem),
   });
 });
 
@@ -117,18 +118,9 @@ projectRoutes.patch(
       .set({
         name: body.name || undefined,
       })
+      .where(eq(projectsTable.id, c.var.project.id))
       .returning();
 
     return c.json(updatedProject);
-  }
-);
-
-// update specific project agent
-projectRoutes.post(
-  '/projects/:projectId/agents/:agentId/enable',
-  projectIdMiddleware,
-  async (c) => {
-    const project = c.var.project;
-    return c.json(project);
   }
 );

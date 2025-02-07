@@ -8,7 +8,8 @@ import { checkUrlInPatternList } from './lib/url-pattern-utils';
 const SECRETAGENT_API_URL = DMNO_CONFIG.SECRETAGENT_API_URL;
 
 type ProjectMetadata = {
-  proxyDomains: Array<string>;
+  proxyUrls: Array<string>;
+  staticConfig: Record<string, string>;
 };
 
 type ProjectInitSettings = {
@@ -26,7 +27,8 @@ type ProjectInitSettings = {
 
 class SecretAgent {
   initSettings!: ProjectInitSettings;
-  projectMetadata!: ProjectMetadata;
+  projectMetadata?: ProjectMetadata;
+  private accessedKeys = {} as Record<string, boolean>;
   api: KyInstance;
 
   constructor() {
@@ -51,17 +53,35 @@ class SecretAgent {
     });
   }
 
+  config = new Proxy({} as Record<string, string>, {
+    get: (target, prop, receiver) => {
+      if (typeof prop === 'symbol') throw new Error('symbols are not supported');
+
+      // if we havent loaded config yet, we track it so we can verify its not a static item
+      if (!this.projectMetadata) {
+        this.accessedKeys[prop] = true;
+        return `$$${prop}$$`;
+      }
+
+      if (this.projectMetadata.staticConfig[prop]) {
+        return this.projectMetadata.staticConfig[prop];
+      } else {
+        return `$$${prop}$$`;
+      }
+    },
+  });
+
   async init(initSettings: ProjectInitSettings) {
     this.initSettings = initSettings;
 
-    const maxRetryCount = this.initSettings.maxRetryCount ?? 10;
+    const maxRetryCount = this.initSettings.maxRetryCount ?? 15;
 
     for (let retryCount = 0; retryCount < maxRetryCount; retryCount++) {
       try {
         await this.regenerateAuthHeader();
         const metadataReq = await this.api.get('agent/project-metadata');
         const metadata: any = await metadataReq.json();
-        console.log(metadata);
+        // console.log(metadata);
         this.projectMetadata = metadata;
         // unref helps it not keep the process running
         setInterval(() => this.regenerateAuthHeader(), 25000).unref();
@@ -70,9 +90,15 @@ class SecretAgent {
         if (err instanceof HTTPError) {
           const errBody = await err.response.json();
           if (errBody?.status === 'pending') {
-            console.log(
-              `This agent is not yet authorized for this project. Admin must approve it in the dashboard (retry #${retryCount + 1}/${maxRetryCount})`
-            );
+            if (retryCount === 0) {
+              console.log('This agent is not yet enabled for this project');
+              console.log(
+                `An admin must approve it @ https://secretagent.sh/dashboard?projectId=${this.initSettings.projectId}`
+              );
+              console.log('Will retry for the next few minutes...');
+            } else {
+              console.log(`> retry ${retryCount + 1} of ${maxRetryCount} failed`);
+            }
             await setTimeout(10000);
           } else {
             throw err;
@@ -82,6 +108,16 @@ class SecretAgent {
         }
       }
     }
+
+    // check if any config items used before load are static
+    const staticKeys = Object.keys(this.projectMetadata!.staticConfig);
+    Object.keys(this.accessedKeys).forEach((k) => {
+      if (staticKeys.includes(k)) {
+        throw new Error(
+          `Config item ${k} is static, do not use until after calling SecretAgent.init`
+        );
+      }
+    });
 
     this.enableHttpsInterceptor();
     this.enableFetchInterceptor();
@@ -106,7 +142,10 @@ class SecretAgent {
     https.request = function patchedHttpsRequest(...args: Parameters<typeof https.request>) {
       const [url, options, callback] = normalizeClientRequestArgs('https:', args);
 
-      if (!checkUrlInPatternList(url.href, singleton.projectMetadata.proxyDomains)) {
+      if (!singleton.projectMetadata) {
+        throw new Error('SecretAgent project metadata not loaded properly');
+      }
+      if (!checkUrlInPatternList(url.href, singleton.projectMetadata.proxyUrls)) {
         // console.log(`> https req ${url} (no proxy)`);
         return originalHttpsRequest(...args);
       }
@@ -121,7 +160,7 @@ class SecretAgent {
       const headers = options.headers || {};
       // pass along original request URL and method as headers
       headers['sa-original-url'] = url.href;
-      headers['sa-original-method'] = options.method;
+      headers['sa-original-method'] = options.method || 'get';
       headers['sa-agent-auth'] = singleton.agentAuthHeader;
 
       return originalHttpsRequest(
@@ -135,6 +174,7 @@ class SecretAgent {
         }
       );
     };
+    https.get = https.request;
   }
   private enableFetchInterceptor() {
     const singleton = this;
@@ -161,7 +201,10 @@ class SecretAgent {
         body = fetchOptsArg.body;
       }
 
-      if (!checkUrlInPatternList(url, singleton.projectMetadata.proxyDomains)) {
+      if (!singleton.projectMetadata) {
+        throw new Error('SecretAgent project metadata not loaded properly');
+      }
+      if (!checkUrlInPatternList(url, singleton.projectMetadata.proxyUrls)) {
         // console.log(`> fetch ${url} (no proxy)`);
         return originalFetch(...args);
       }
@@ -174,7 +217,7 @@ class SecretAgent {
 
       return originalFetch(`${SECRETAGENT_API_URL}/agent/proxy`, {
         headers,
-        method,
+        method: 'POST',
         body,
 
         ...(SECRETAGENT_API_URL.startsWith('https://localhost:') && {

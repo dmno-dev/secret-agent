@@ -10,5 +10,5 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "include": ["src/**/*.ts", "dmno-env.d.ts"]
+  "include": ["src/**/*.ts", "dmno-env.d.ts", "drizzle.config.ts"]
 }

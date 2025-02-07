@@ -15,15 +15,30 @@ export interface Agent {
   createdAt: string;
 }
 
-export interface ConfigItem {
-  value: string | null;
+export type ConfigItem = {
   createdAt: string;
   projectId: string;
   key: string;
-  itemType: 'llm' | 'user';
-  settings?: Record<string, unknown>;
   usageData?: {
     date: string;
     value: number;
   }[];
-}
+} & (
+  | {
+      itemType: 'llm';
+      llmSettings: {};
+    }
+  | {
+      itemType: 'proxy';
+      maskedValue: string;
+      proxySettings: {
+        matchUrl: Array<string>;
+      };
+    }
+  | {
+      itemType: 'static';
+      maskedValue: string;
+    }
+);
+
+export type ConfigItemCreate = Omit<ConfigItem, 'createdAt'>;

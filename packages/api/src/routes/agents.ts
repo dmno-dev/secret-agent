@@ -2,11 +2,10 @@ import { createMiddleware } from 'hono/factory';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { Hono } from 'hono';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
-import { createPrivyServerWallet } from '../lib/privy';
-import { configItemsTable, projectAgentsTable, projectsTable } from '../db/schema';
-import { HonoEnv, loggedInOnly } from '../lib/middlewares';
+import { projectAgentsTable } from '../db/schema';
+import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
 
 export const agentRoutes = new Hono<HonoEnv>();
@@ -104,7 +103,12 @@ agentRoutes.patch(
         label: body.label,
         status: body.status,
       })
-      .where(eq(projectAgentsTable.id, c.req.param('agentId')))
+      .where(
+        and(
+          eq(projectAgentsTable.projectId, c.var.project.id),
+          eq(projectAgentsTable.id, c.var.agent.id)
+        )
+      )
       .returning();
 
     return c.json(updatedAgent);

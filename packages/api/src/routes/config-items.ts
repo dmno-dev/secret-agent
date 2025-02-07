@@ -5,18 +5,37 @@ import { Hono } from 'hono';
 import { configItemsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
-import { eq } from 'drizzle-orm';
+import { and, eq, InferSelectModel } from 'drizzle-orm';
 
 export const configItemRoutes = new Hono<HonoEnv>();
 
 const configItemUpdateSchema = z.object({
   key: z.string().trim().default('Default project'),
-  itemType: z.enum(['llm', 'user']).default('llm'),
+  itemType: z.enum(['llm', 'proxy', 'static']).default('llm'),
   // TODO: refine based on itemType
   value: z.string().optional(),
   llmSettings: z.object().optional(),
-  settings: z.object().optional(),
+  proxySettings: z.object().optional(),
 });
+
+type ConfigItem = InferSelectModel<typeof configItemsTable>;
+
+export function serializeConfigItem(configItem: ConfigItem) {
+  return {
+    key: configItem.key,
+    itemType: configItem.itemType,
+    createdAt: configItem.createdAt,
+    ...(configItem.itemType === 'llm' && {
+      llmSettings: configItem.settings,
+    }),
+    ...(configItem.itemType === 'proxy' && {
+      proxySettings: configItem.settings,
+    }),
+    ...(['proxy', 'static'].includes(configItem.itemType) && {
+      maskedValue: configItem.value?.slice(2) + '****' + configItem.value?.slice(-2),
+    }),
+  };
+}
 
 // create new config item
 configItemRoutes.post(
@@ -33,12 +52,18 @@ configItemRoutes.post(
         projectId: c.var.project.id,
         key: body.key,
         itemType: body.itemType,
-        value: body.value,
-        settings: body.itemType === 'llm' ? body.llmSettings : body.settings,
+        ...(body.itemType !== 'llm' &&
+          'value' in body && {
+            value: body.value,
+          }),
+        settings:
+          (body.itemType === 'llm' && body.llmSettings) ||
+          (body.itemType === 'proxy' && body.proxySettings) ||
+          undefined,
       })
       .returning();
 
-    return c.json(newItem[0]);
+    return c.json(serializeConfigItem(newItem[0]));
   }
 );
 
@@ -54,14 +79,27 @@ configItemRoutes.patch(
     const updatedItem = await db
       .update(configItemsTable)
       .set({
+        // copied from POST above
         key: body.key,
         itemType: body.itemType,
-        settings: body.itemType === 'llm' ? body.llmSettings : body.settings,
-        ...(body.value && { value: body.value }),
+        ...(body.itemType !== 'llm' &&
+          'value' in body && {
+            value: body.value,
+          }),
+        settings:
+          (body.itemType === 'llm' && body.llmSettings) ||
+          (body.itemType === 'proxy' && body.proxySettings) ||
+          undefined,
       })
+      .where(
+        and(
+          eq(configItemsTable.projectId, c.var.project.id),
+          eq(configItemsTable.key, c.req.param('configItemKey'))
+        )
+      )
       .returning();
 
-    return c.json(updatedItem);
+    return c.json(serializeConfigItem(updatedItem?.[0]));
   }
 );
 
@@ -73,8 +111,15 @@ configItemRoutes.delete(
     const db = c.var.db;
     const configItemKey = c.req.param('configItemKey');
 
-    await db.delete(configItemsTable).where(eq(configItemsTable.key, configItemKey));
+    await db
+      .delete(configItemsTable)
+      .where(
+        and(
+          eq(configItemsTable.projectId, c.var.project.id),
+          eq(configItemsTable.key, c.req.param('configItemKey'))
+        )
+      );
 
-    return c.json({ message: 'Config item deleted' });
+    return c.json({ success: true, message: 'Config item deleted' });
   }
 );

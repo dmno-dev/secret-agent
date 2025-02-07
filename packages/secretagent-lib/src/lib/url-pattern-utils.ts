@@ -1,3 +1,4 @@
+// ! This file is symlinked in the api
 /**
  * Simple utility to check a URL against a list of allowed patterns
  *

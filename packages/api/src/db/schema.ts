@@ -31,9 +31,9 @@ export const configItemsTable = sqliteTable(
     createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
-    itemType: text({ enum: ['llm', 'user'] }).notNull(),
+    itemType: text({ enum: ['llm', 'proxy', 'static'] }).notNull(),
     value: text(), // only for user-defined keys, will store encrypted
-    settings: text({ mode: 'json' }).$type<{ foo: string }>(),
+    settings: text({ mode: 'json' }), // .$type<{ foo: string }>(),
   },
   (table) => [
     // compound primary key
