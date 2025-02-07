@@ -1,7 +1,11 @@
 'use client';
 
-import { secretAgentApi } from '@/lib/api';
-import { ConfigItem, ConfigItemCreate } from '@/lib/types';
+import {
+  useCreateConfigItem,
+  useDeleteConfigItem,
+  useUpdateConfigItem,
+} from '@/lib/hooks/use-config-items';
+import { ConfigItem } from '@/lib/types';
 import { ChevronDown, ChevronRight, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -17,7 +21,10 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const [configItemsState, setConfigItems] = useState<ConfigItem[]>(configItems);
+
+  const createConfigItem = useCreateConfigItem(projectId);
+  const updateConfigItem = useUpdateConfigItem(projectId);
+  const deleteConfigItem = useDeleteConfigItem(projectId);
 
   const toggleExpand = (key: string) => {
     setExpandedItem(expandedItem === key ? null : key);
@@ -29,32 +36,35 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
 
   const handleAddKey = async (data: NewKeyFormData) => {
     try {
-      if (!data.shared && !data.value) {
-        throw new Error('Value is required when not shared');
+      let configItem;
+      switch (data.type) {
+        case 'llm':
+          configItem = {
+            key: data.name,
+            itemType: 'llm' as const,
+            llmSettings: {},
+          };
+          break;
+        case 'proxy':
+          configItem = {
+            key: data.name,
+            itemType: 'proxy' as const,
+            value: data.value || '',
+            proxySettings: {
+              matchUrls: data.matchUrls || [],
+            },
+          };
+          break;
+        case 'static':
+          configItem = {
+            key: data.name,
+            itemType: 'static' as const,
+            value: data.value || '',
+          };
+          break;
       }
 
-      const configItem: ConfigItemCreate = {
-        key: data.name,
-        projectId: projectId,
-        ...(data.shared
-          ? {
-              itemType: 'llm',
-              llmSettings: {},
-            }
-          : {
-              itemType: 'proxy',
-              value: data.value,
-              proxySettings: {
-                domainRules: data.domainRules,
-              },
-            }),
-      };
-
-      await secretAgentApi.post(`projects/${projectId}/config-items`, {
-        json: configItem,
-      });
-
-      setConfigItems((prev) => [...prev, configItem]);
+      await createConfigItem.mutateAsync(configItem);
       toast.success('Config item created successfully');
       setShowAddModal(false);
     } catch (error) {
@@ -64,18 +74,21 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
   };
 
   const handleDeleteConfigItem = async (key: string) => {
+    if (!confirm('Are you sure you want to delete this config item?')) {
+      return;
+    }
+
     try {
-      await secretAgentApi.delete(`projects/${projectId}/config-items/${key}`);
-
-      // Remove the item from the local state
-      setConfigItems((prev) => prev.filter((item) => item.key !== key));
-
+      await deleteConfigItem.mutateAsync(key);
       toast.success('Config item deleted successfully');
     } catch (error) {
       console.error('Error deleting config item:', error);
       toast.error('Failed to delete config item');
     }
   };
+
+  const isLoading =
+    createConfigItem.isPending || updateConfigItem.isPending || deleteConfigItem.isPending;
 
   return (
     <div className="space-y-4">
@@ -117,33 +130,54 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
             {expandedItem === item.key && (
               <div className="p-4 border-t border-gray-300 dark:border-green-400 bg-gray-50 dark:bg-gray-900">
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500 dark:text-green-600">Value:</span>
-                    <span className="font-mono text-sm">
-                      {showValues[item.key] ? item.value : '••••••••••••••••'}
-                    </span>
-                  </div>
+                  {(item.itemType === 'proxy' || item.itemType === 'static') && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500 dark:text-green-600">Value:</span>
+                      <span className="font-mono text-sm">
+                        {showValues[item.key] ? item.maskedValue : '••••••••••••••••'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500 dark:text-green-600">Created:</span>
                     <span className="text-sm">{new Date(item.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {item.settings && (
+                  {item.itemType === 'llm' && item.llmSettings && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500 dark:text-green-600">Settings:</span>
-                      <span className="text-sm font-mono">{JSON.stringify(item.settings)}</span>
+                      <span className="text-sm text-gray-500 dark:text-green-600">
+                        LLM Settings:
+                      </span>
+                      <span className="text-sm font-mono">{JSON.stringify(item.llmSettings)}</span>
+                    </div>
+                  )}
+                  {item.itemType === 'proxy' && item.proxySettings && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500 dark:text-green-600">
+                        Proxy Settings:
+                      </span>
+                      <span className="text-sm font-mono">
+                        {JSON.stringify(item.proxySettings)}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-end space-x-2 mt-4">
-                    <button className="text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900">
+                    <button
+                      disabled={isLoading}
+                      className="text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       Revoke
                     </button>
-                    <button className="text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <button
+                      disabled={isLoading}
+                      className="text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       Rotate
                     </button>
                   </div>
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleDeleteConfigItem(item.key)}
+                      disabled={isLoading}
                       className="flex items-center space-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -159,7 +193,8 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
 
       <button
         onClick={() => setShowAddModal(true)}
-        className="w-full p-2 border border-dashed border-gray-300 dark:border-green-400 rounded-lg text-gray-500 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center justify-center space-x-2"
+        disabled={isLoading}
+        className="w-full p-2 border border-dashed border-gray-300 dark:border-green-400 rounded-lg text-gray-500 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Plus className="w-4 h-4" />
         <span>Add new key</span>

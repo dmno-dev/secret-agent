@@ -1,26 +1,46 @@
 'use client';
 
-import { ConfigItemCreate } from '@/lib/types';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
+
+export type NewKeyFormData = {
+  name: string;
+  type: 'llm' | 'proxy' | 'static';
+  value?: string;
+  matchUrls?: string[];
+};
 
 interface AddKeyModalProps {
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: NewKeyFormData) => void;
 }
 
 export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
-  const [formData, setFormData] = useState({
-    key: '',
-    itemType: 'llm',
+  const [formData, setFormData] = useState<NewKeyFormData>({
+    name: '',
+    type: 'llm',
     value: '',
-    llmSettings: {},
-    proxySettings: {},
+    matchUrls: [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.type !== 'llm' && !formData.value) {
+      toast.error('Value is required for non-LLM keys');
+      return;
+    }
+
     onSubmit(formData);
+  };
+
+  const handleMatchUrlsChange = (value: string) => {
+    const urls = value
+      .split(',')
+      .map((url) => url.trim())
+      .filter(Boolean);
+    setFormData((prev) => ({ ...prev, matchUrls: urls }));
   };
 
   return (
@@ -44,8 +64,8 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
             <input
               type="text"
               required
-              value={formData.key}
-              onChange={(e) => setFormData((prev) => ({ ...prev, key: e.target.value }))}
+              value={formData.name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
               placeholder="e.g., OPENAI_API_KEY"
             />
@@ -53,26 +73,60 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
-              Item Type
+              Key Type
             </label>
-            <select
-              id="itemType"
-              onChange={(e) => setFormData((prev) => ({ ...prev, itemType: e.target.value }))}
-              className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
-            >
-              <option value="llm">llm - pay-per-use LLM api key</option>
-              <option value="proxy">proxy - user owned, inserted by proxy</option>
-              <option value="static">static - user owned, fetched by agent</option>
-            </select>
+            <div className="flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, type: 'llm' }))}
+                className={`flex-1 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-green-400 first:rounded-l-md last:rounded-r-md focus:z-10 focus:ring-2 focus:ring-green-500 ${
+                  formData.type === 'llm'
+                    ? 'bg-green-500 text-white dark:bg-green-600'
+                    : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                LLM
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, type: 'proxy' }))}
+                className={`flex-1 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-green-400 first:rounded-l-md last:rounded-r-md -ml-px focus:z-10 focus:ring-2 focus:ring-green-500 ${
+                  formData.type === 'proxy'
+                    ? 'bg-green-500 text-white dark:bg-green-600'
+                    : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                Proxy
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, type: 'static' }))}
+                className={`flex-1 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-green-400 first:rounded-l-md last:rounded-r-md -ml-px focus:z-10 focus:ring-2 focus:ring-green-500 ${
+                  formData.type === 'static'
+                    ? 'bg-green-500 text-white dark:bg-green-600'
+                    : 'bg-transparent text-gray-700 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                Static
+              </button>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-green-600">
+              {formData.type === 'llm'
+                ? 'Pay-per-use LLM API key'
+                : formData.type === 'proxy'
+                  ? 'User owned key, inserted by proxy'
+                  : 'Static value, fetched by agent'}
+            </p>
           </div>
 
-          {(formData.itemType === 'proxy' || formData.itemType === 'static') && (
+          {(formData.type === 'proxy' || formData.type === 'static') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
                 Value
               </label>
               <input
                 type="text"
+                required
                 value={formData.value}
                 onChange={(e) => setFormData((prev) => ({ ...prev, value: e.target.value }))}
                 className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
@@ -81,16 +135,16 @@ export function AddKeyModal({ onClose, onSubmit }: AddKeyModalProps) {
             </div>
           )}
 
-          {formData.itemType === 'proxy' && (
+          {formData.type === 'proxy' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
-                Domain Match Rules
+                Match URLs
               </label>
               <input
                 type="text"
                 required
-                value={formData.domainRules}
-                onChange={(e) => setFormData((prev) => ({ ...prev, domainRules: e.target.value }))}
+                value={formData.matchUrls?.join(', ')}
+                onChange={(e) => handleMatchUrlsChange(e.target.value)}
                 className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
                 placeholder="*.example.com, app.domain.com"
               />

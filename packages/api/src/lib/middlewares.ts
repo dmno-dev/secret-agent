@@ -1,10 +1,10 @@
-import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
-import { createFactory, createMiddleware } from 'hono/factory';
-import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
 import { ethers } from 'ethers';
 import { Context, Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { createMiddleware } from 'hono/factory';
+import * as schema from '../db/schema';
 
 export type HonoEnv = {
   Bindings: {

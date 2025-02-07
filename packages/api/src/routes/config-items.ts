@@ -1,7 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
-import { Hono } from 'hono';
 import { and, eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { z } from 'zod';
 
 import { configItemsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
@@ -16,8 +16,8 @@ const configItemUpdateSchema = z.object({
   itemType: z.enum(['llm', 'proxy', 'static']).default('llm'),
   // TODO: refine based on itemType
   value: z.string().optional(),
-  llmSettings: z.object().optional(),
-  proxySettings: z.object().optional(),
+  llmSettings: z.object({}).optional(),
+  proxySettings: z.object({}).optional(),
 });
 
 // create new config item
