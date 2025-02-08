@@ -99,13 +99,6 @@ export function ProjectsView() {
       {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
           <div className="text-lg font-mono">No projects found</div>
-          <button
-            onClick={() => setIsNewProjectModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Create your first project
-          </button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,5 +1,6 @@
 'use client';
 
+import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
 import { Address, EthBalance, Identity } from '@coinbase/onchainkit/identity';
 import {
   ConnectWallet,
@@ -8,18 +9,31 @@ import {
   WalletDropdownDisconnect,
   WalletDropdownLink,
 } from '@coinbase/onchainkit/wallet';
+import { useEffect } from 'react';
 import { useAccount } from 'wagmi';
+import { useAuth } from '../providers';
 
 export function WalletButton() {
   const { isConnected } = useAccount();
+  const { setAuthToken, authToken } = useAuth();
+
+  // Listen for disconnect events and clear auth token
+  useEffect(() => {
+    if (!isConnected && authToken) {
+      setAuthToken(undefined);
+      window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
+    }
+  }, [isConnected, authToken, setAuthToken]);
+
   if (!isConnected) {
     return null;
   }
+
   return (
     <div className="flex items-center">
       <Wallet>
-        <ConnectWallet className="flex items-center space-x-2 px-3 py-2 rounded bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors">
-          <Address hasCopyAddressOnClick={false} />
+        <ConnectWallet className="!p-0 !bg-transparent !border-0 text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors font-mono">
+          Profile
         </ConnectWallet>
         <WalletDropdown>
           <Identity className="px-4 pt-3 pb-2">
@@ -31,7 +45,7 @@ export function WalletButton() {
             Wallet
           </WalletDropdownLink>
 
-          <WalletDropdownDisconnect />
+          <WalletDropdownDisconnect text="Logout" />
         </WalletDropdown>
       </Wallet>
     </div>

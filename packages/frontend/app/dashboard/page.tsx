@@ -1,7 +1,4 @@
 import { ProjectsView } from './components/projects-view';
-import { UsageAreaChart } from './components/charts/usage-area-chart';
-import { DistributionPieChart } from './components/charts/distribution-pie-chart';
-import { RequestsBarChart } from './components/charts/requests-bar-chart';
 
 export default function Dashboard() {
   const usageData = [
@@ -25,7 +22,7 @@ export default function Dashboard() {
   return (
     <div className="h-full space-y-6">
       {/* <h1 className="text-3xl font-bold glow-text">SecretAgent.sh Console</h1> */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <UsageAreaChart
           data={usageData}
           title="API Usage Over Time"
@@ -41,7 +38,7 @@ export default function Dashboard() {
           title="Request Status"
           description="Successful vs failed requests"
         />
-      </div>
+      </div> */}
       <ProjectsView />
     </div>
   );

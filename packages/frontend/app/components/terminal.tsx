@@ -6,10 +6,10 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
-import { useAccount, useDisconnect } from 'wagmi';
-import { WalletButton } from './wallet-button';
 import { useState } from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
 import { DocsModal } from '../dashboard/components/docs-modal';
+import { WalletButton } from './wallet-button';
 
 import { useTypingEffect } from '@/hooks/use-typing-effect';
 interface TerminalProps {
@@ -39,7 +39,7 @@ export function Terminal({ children }: TerminalProps) {
             <div className="flex space-x-2">
               <a
                 href="/"
-                className="flex items-center space-x-3 group text-gray-600 dark:text-green-400 hover:text-green-600 dark:hover:text-green-200 transition-none"
+                className="flex items-center space-x-3 group text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors"
               >
                 {/* Logo! */}
                 <svg
@@ -66,31 +66,11 @@ export function Terminal({ children }: TerminalProps) {
                 </svg>
                 <h1 className="text-3xl font-bold">{siteTitle}</h1>
               </a>
-              {/* <div
-                className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-600 transition-colors"
-                onClick={() => isConnected && logout()}
-                title={isConnected ? 'Disconnect wallet' : ''}
-              ></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div
-                className="w-3 h-3 rounded-full bg-green-500 cursor-pointer hover:bg-green-600 transition-colors"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                title="Toggle theme"
-              ></div> */}
             </div>
-
-            {/* {isDashboard && (
-              <Link
-                href="/"
-                className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors font-mono"
-              >
-                $ cd /home
-              </Link>
-            )} */}
           </div>
 
           <div className="flex items-center space-x-4 mr-2">
-            {isConnected && !isDashboard && (
+            {!isDashboard && (
               <Link
                 href="/dashboard"
                 className="text-gray-600 dark:text-green-400 hover:text-gray-800 dark:hover:text-green-200 transition-colors font-mono"
