@@ -32,6 +32,7 @@ process.env.LANGSMITH_API_KEY = SecretAgent.config.LANGSMITH_API_KEY;
  * @returns Agent executor and config
  */
 export async function initializeAgent() {
+  console.log('Initializing agent with config:', SecretAgent.config);
   try {
     // Initialize LLM
     const llm = new ChatOpenAI({
