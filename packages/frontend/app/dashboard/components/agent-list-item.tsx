@@ -96,7 +96,7 @@ export function AgentListItem({
                   e.stopPropagation();
                   onDelete();
                 }}
-                disabled={isLoading}
+                disabled={true}
                 className="flex items-center space-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-4 h-4" />
