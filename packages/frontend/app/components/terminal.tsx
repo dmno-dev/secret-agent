@@ -18,16 +18,9 @@ interface TerminalProps {
 
 export function Terminal({ children }: TerminalProps) {
   const { theme, setTheme } = useTheme();
-  const { isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith('/dashboard');
   const [showDocs, setShowDocs] = useState(false);
-
-  function logout() {
-    disconnect();
-    window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
-  }
 
   const siteTitle = useTypingEffect('SecretAgent.sh', 50);
 

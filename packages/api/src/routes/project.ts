@@ -3,6 +3,7 @@ import { and, eq, gt, sql, sum } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
+import { addHours, subHours } from 'date-fns';
 
 import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
 import { convertGweiToUsd, getWalletEthBalance } from '../lib/eth';
@@ -157,8 +158,7 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
   const project = c.var.project;
   const db = c.var.db;
 
-  const lastMidnight = new Date(new Date().toISOString().substring(0, 10));
-
+  // Get the period totals
   const result = await db
     .select({
       cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
@@ -175,17 +175,61 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
       llmCount: sum(sql`CASE WHEN requestType = 'llm' THEN 1 ELSE 0 END`).mapWith(Number),
     })
     .from(requestsTable)
-    .where(and(eq(requestsTable.projectId, project.id), gt(requestsTable.timestamp, lastMidnight)));
+    .where(and(eq(requestsTable.projectId, project.id), sql`DATE(timestamp) = CURRENT_DATE`));
 
   const totals = result[0];
 
+  // Get hourly data for the last 24 hours using SQL date functions
+  const hourlyQuery = await db
+    .select({
+      cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
+      proxyCount: sum(sql`CASE WHEN requestType = 'proxy' THEN 1 ELSE 0 END`).mapWith(Number),
+      llmCount: sum(sql`CASE WHEN requestType = 'llm' THEN 1 ELSE 0 END`).mapWith(Number),
+      totalTokens: sum(sql`responseDetails->'llmResponse'->'usage'->'total_tokens'`).mapWith(
+        Number
+      ),
+      hour: sql`strftime('%H:%M', timestamp)`.mapWith(String),
+    })
+    .from(requestsTable)
+    .where(
+      and(eq(requestsTable.projectId, project.id), sql`timestamp > datetime('now', '-24 hours')`)
+    )
+    .groupBy(sql`strftime('%H:%M', timestamp)`)
+    .orderBy(sql`strftime('%H:%M', timestamp)`);
+
+  // Create array of hours for the last 24 hours
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, '0');
+    const minute = '00';
+    return `${hour}:${minute}`;
+  });
+
+  // Fill in the data, using 0 for missing hours
+  const hourlyData = hours.map((hour) => {
+    const data = hourlyQuery.find((q) => q.hour === hour);
+    return {
+      timestamp: hour,
+      cost: data?.cost || 0,
+      proxyCount: data?.proxyCount || 0,
+      llmCount: data?.llmCount || 0,
+      totalTokens: data?.totalTokens || 0,
+    };
+  });
+
   // Calculate USD cost using our helper function
-  const costInUsd = totals.cost ? await convertGweiToUsd(totals.cost) : 0;
+  const costInUsd = totals?.cost ? await convertGweiToUsd(totals.cost) : 0;
 
   return c.json({
     totals: {
       ...totals,
+      cost: totals?.cost || 0,
+      promptTokens: totals?.promptTokens || 0,
+      completionTokens: totals?.completionTokens || 0,
+      totalTokens: totals?.totalTokens || 0,
+      proxyCount: totals?.proxyCount || 0,
+      llmCount: totals?.llmCount || 0,
       costInUsd,
     },
+    hourly: hourlyData,
   });
 });

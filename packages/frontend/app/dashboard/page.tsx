@@ -1,24 +1,6 @@
 import { ProjectsView } from './components/projects-view';
 
-export default function Dashboard() {
-  const usageData = [
-    { date: '2024-01-01', usage: 400 },
-    { date: '2024-01-02', usage: 300 },
-    // ... more data
-  ];
-
-  const distributionData = [
-    { name: 'OpenAI', value: 400 },
-    { name: 'Anthropic', value: 300 },
-    // ... more data
-  ];
-
-  const requestsData = [
-    { name: 'Jan', successful: 400, failed: 20 },
-    { name: 'Feb', successful: 300, failed: 15 },
-    // ... more data
-  ];
-
+export default function DashboardPage() {
   return (
     <div className="h-full space-y-6">
       {/* <h1 className="text-3xl font-bold glow-text">SecretAgent.sh Console</h1> */}

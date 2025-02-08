@@ -19,6 +19,7 @@
     "@coinbase/coinbase-sdk": "^0.17.0",
     "@hono/zod-validator": "^0.4.2",
     "@privy-io/server-auth": "^1.18.5",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "^0.39.1",
     "ethers": "^6.13.5",
     "hono": "^4.6.20",
