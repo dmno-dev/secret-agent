@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import ky, { HTTPError, KyInstance } from 'ky';
-import { Agent } from 'undici';
 import https from 'node:https';
 import { setTimeout } from 'node:timers/promises';
+import { Agent } from 'undici';
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
 
@@ -37,7 +38,6 @@ class SecretAgent {
 
       // need to ignore self-signed cert error if connecting to localhost
       ...(SECRETAGENT_API_URL.startsWith('https://localhost:') && {
-        // @ts-ignore
         dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
       }),
 
@@ -138,6 +138,7 @@ class SecretAgent {
 
     const singleton = this;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     https.request = function patchedHttpsRequest(...args: Parameters<typeof https.request>) {
       const [url, options, callback] = normalizeClientRequestArgs('https:', args);
@@ -221,7 +222,6 @@ class SecretAgent {
         body,
 
         ...(SECRETAGENT_API_URL.startsWith('https://localhost:') && {
-          // @ts-ignore
           dispatcher: new Agent({ connect: { rejectUnauthorized: false } }),
         }),
       });
