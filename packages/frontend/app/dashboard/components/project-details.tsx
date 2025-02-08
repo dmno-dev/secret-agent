@@ -92,25 +92,20 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
           <FundProject projectId={project.id} />
         </div>
 
-        <ApiCallStats projectId={project.id} />
-      </div>
+        <div>
+          <h3 className="text-xl font-bold mb-4 glow-text">Current Period Stats</h3>
+          <ApiCallStats projectId={project.id} />
+        </div>
 
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-2 glow-text">Policy Rules</h3>
-        <ul className="list-disc list-inside text-gray-700 dark:text-green-400">
-          <li>Max daily spend: 0.1 ETH</li>
-          <li>Allowed APIs: OpenAI, Anthropic</li>
-        </ul>
-      </div>
+        <div>
+          <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
+          <ConfigItems projectId={project.id} configItems={data?.configItems || []} />
+        </div>
 
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
-        <ConfigItems projectId={project.id} configItems={data?.configItems || []} />
-      </div>
-
-      <div className="mt-6">
-        <h3 className="text-xl font-bold mb-4 glow-text">Agents</h3>
-        <AgentsList agents={data?.agents || []} projectId={project.id} />
+        <div>
+          <h3 className="text-xl font-bold mb-4 glow-text">Agents</h3>
+          <AgentsList agents={data?.agents || []} projectId={project.id} />
+        </div>
       </div>
     </div>
   );
