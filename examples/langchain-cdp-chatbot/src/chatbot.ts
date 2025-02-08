@@ -270,5 +270,4 @@ async function main() {
   }
 }
 
-// Remove the automatic execution of main()
-// await main();
+await main();

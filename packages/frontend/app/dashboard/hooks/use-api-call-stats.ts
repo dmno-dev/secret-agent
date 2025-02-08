@@ -7,6 +7,8 @@ type RequestStatsTotals = {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  cost: number;
+  costInUsd: number;
 };
 
 const initialStats: RequestStatsTotals = {
@@ -15,6 +17,8 @@ const initialStats: RequestStatsTotals = {
   promptTokens: 0,
   completionTokens: 0,
   totalTokens: 0,
+  cost: 0,
+  costInUsd: 0,
 };
 
 export type RequestStatsState = {

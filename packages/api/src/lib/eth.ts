@@ -1,5 +1,5 @@
+import { Coinbase } from '@coinbase/coinbase-sdk';
 import { ethers } from 'ethers';
-import { Coinbase, Wallet } from '@coinbase/coinbase-sdk';
 
 Coinbase.configure({
   apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
@@ -7,6 +7,18 @@ Coinbase.configure({
 });
 
 export const ETH_TO_GWEI = 1000000000;
+
+export async function getEthUsdPrice(): Promise<number> {
+  const ethSpotReq = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
+  const ethSpotData: any = await ethSpotReq.json();
+  return parseFloat(ethSpotData.data.amount);
+}
+
+export async function convertGweiToUsd(gweiAmount: number): Promise<number> {
+  const ethPrice = await getEthUsdPrice();
+  const ethAmount = gweiAmount / ETH_TO_GWEI;
+  return ethAmount * ethPrice;
+}
 
 export async function getWalletEthBalance(address: string) {
   const provider = new ethers.InfuraProvider(
@@ -20,13 +32,12 @@ export async function getWalletEthBalance(address: string) {
 
   console.log(balance);
 
-  // https://api.exchange.coinbase.com/products/ETH-USD/ticker
-  const ethSpotReq = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
-  const ethSpotData: any = await ethSpotReq.json();
-  const ethPriceCents = parseFloat(ethSpotData.data.amount) * 100;
+  const ethPrice = await getEthUsdPrice();
+  const usdValue = balance * ethPrice;
+
   return {
     eth: balance.toString(),
-    usdCents: balance * ethPriceCents,
-    ethPriceCents,
+    usdCents: usdValue * 100,
+    ethPriceCents: ethPrice * 100,
   };
 }

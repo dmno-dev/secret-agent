@@ -2,10 +2,17 @@ import NumberFlow from '@number-flow/react';
 import { Shield } from 'lucide-react';
 import { formatEther } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
+import { useProjectCurrentPeriodStats } from '../hooks/use-api-call-stats';
 
 const balanceFormat = {
   minimumFractionDigits: 4,
   maximumFractionDigits: 4,
+  useGrouping: true,
+} as const;
+
+const percentFormat = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
   useGrouping: true,
 } as const;
 
@@ -20,6 +27,7 @@ function BalanceSkeleton() {
 
 export function BalanceDisplay({ projectId }: { projectId: string }) {
   const { address: connectedAddress } = useAccount();
+  const { totals } = useProjectCurrentPeriodStats(projectId);
 
   // Fetch connected wallet balance with polling
   const { data: walletBalance, isLoading: isWalletBalanceLoading } = useBalance({
@@ -50,6 +58,8 @@ export function BalanceDisplay({ projectId }: { projectId: string }) {
 
   const projectBalanceValue = projectBalance ? parseFloat(formatEther(projectBalance.value)) : 0;
   const walletBalanceValue = walletBalance ? parseFloat(formatEther(walletBalance.value)) : 0;
+  const costInEth = totals?.cost ? parseFloat(formatEther(BigInt(totals.cost))) : 0;
+  const costPercentage = projectBalanceValue > 0 ? (costInEth / projectBalanceValue) * 100 : 0;
 
   return (
     <div className="flex items-center space-x-2">
@@ -72,6 +82,15 @@ export function BalanceDisplay({ projectId }: { projectId: string }) {
             className="font-semibold tabular-nums slashed-zero"
           />{' '}
           {walletBalance?.symbol}
+        </span>
+        <span className="text-xs text-gray-500">
+          Period Cost:{' '}
+          <NumberFlow
+            value={costPercentage}
+            format={percentFormat}
+            className="font-semibold tabular-nums slashed-zero"
+          />
+          % of balance
         </span>
       </div>
     </div>
