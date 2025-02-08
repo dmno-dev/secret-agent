@@ -98,14 +98,6 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
         </div>
 
         <div>
-          <h3 className="text-xl font-bold mb-2 glow-text">Policy Rules</h3>
-          <ul className="list-disc list-inside text-gray-700 dark:text-green-400">
-            <li>Max daily spend: 0.1 ETH</li>
-            <li>Allowed APIs: OpenAI, Anthropic</li>
-          </ul>
-        </div>
-
-        <div>
           <h3 className="text-xl font-bold mb-4 glow-text">Configuration</h3>
           <ConfigItems projectId={project.id} configItems={data?.configItems || []} />
         </div>
