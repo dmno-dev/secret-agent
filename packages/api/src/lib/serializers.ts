@@ -15,7 +15,7 @@ export function serializeConfigItem(configItem: ConfigItem) {
       proxySettings: configItem.settings,
     }),
     ...(['proxy', 'static'].includes(configItem.itemType) && {
-      maskedValue: configItem.value?.slice(2) + '****' + configItem.value?.slice(-2),
+      maskedValue: configItem.value?.slice(0, 4) + '****' + configItem.value?.slice(-3),
     }),
   };
 }

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0a0af44a-0d43-4592-b75d-61f2ba3da93e",
+  "id": "2dc59171-4dcb-4ee8-867e-961fb0c266b5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "config_items": {
@@ -21,8 +21,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -57,15 +65,22 @@
           "name": "config_items_project_id_projects_id_fk",
           "tableFrom": "config_items",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "config_items_project_id_key_pk": {
-          "columns": ["project_id", "key"],
+          "columns": [
+            "project_id",
+            "key"
+          ],
           "name": "config_items_project_id_key_pk"
         }
       },
@@ -79,11 +94,11 @@
           "name": "id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "project_id": {
-          "name": "project_id",
+        "projectId": {
+          "name": "projectId",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -96,13 +111,28 @@
           "notNull": false,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "lastConnectedAt": {
+          "name": "lastConnectedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "status": {
           "name": "status",
@@ -115,20 +145,27 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "project_agents_project_id_projects_id_fk": {
-          "name": "project_agents_project_id_projects_id_fk",
+        "project_agents_projectId_projects_id_fk": {
+          "name": "project_agents_projectId_projects_id_fk",
           "tableFrom": "project_agents",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "project_agents_project_id_id_pk": {
-          "columns": ["project_id", "id"],
-          "name": "project_agents_project_id_id_pk"
+        "project_agents_projectId_id_pk": {
+          "columns": [
+            "projectId",
+            "id"
+          ],
+          "name": "project_agents_projectId_id_pk"
         }
       },
       "uniqueConstraints": {},
@@ -158,15 +195,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "owned_by_user_id": {
-          "name": "owned_by_user_id",
+        "ownedByUserId": {
+          "name": "ownedByUserId",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -176,12 +213,96 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "projects_owned_by_user_id_users_id_fk": {
-          "name": "projects_owned_by_user_id_users_id_fk",
+        "projects_ownedByUserId_users_id_fk": {
+          "name": "projects_ownedByUserId_users_id_fk",
           "tableFrom": "projects",
           "tableTo": "users",
-          "columnsFrom": ["owned_by_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "ownedByUserId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "requests": {
+      "name": "requests",
+      "columns": {
+        "projectId": {
+          "name": "projectId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "agentId": {
+          "name": "agentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "requestId": {
+          "name": "requestId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "requestDetails": {
+          "name": "requestDetails",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "responseDetails": {
+          "name": "responseDetails",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "requestType": {
+          "name": "requestType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "requests_projectId_projects_id_fk": {
+          "name": "requests_projectId_projects_id_fk",
+          "tableFrom": "requests",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -207,8 +328,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

@@ -6,7 +6,7 @@ import {
   useUpdateConfigItem,
 } from '@/lib/hooks/use-config-items';
 import { ConfigItem, ConfigItemCreate } from '@/lib/types';
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AddKeyModal, type NewKeyFormData } from './add-key-modal';
@@ -158,14 +158,15 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
                     <button
                       onClick={() => handleEditItem(item)}
                       disabled={isLoading}
-                      className="text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-x-1 text-sm px-3 py-1 border border-gray-300 dark:border-green-400 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Update Value
+                      <Pencil className="w-4 h-4" />
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDeleteConfigItem(item.key)}
                       disabled={isLoading}
-                      className="flex items-center space-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-x-1 text-sm px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Delete</span>

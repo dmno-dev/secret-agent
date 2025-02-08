@@ -20,6 +20,8 @@ export default function RootLayout(props: { children: ReactNode }) {
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
+      <link rel="icon" href="/icon.svg" sizes="any" />
+      <link rel="mask-icon" href="/icon-mask.svg" color="#000000" />
       <body className={`${GeistSans.className}, ${GeistMono.className}`}>
         <Providers>{props.children}</Providers>
         <Toaster theme="system" position="top-right" closeButton richColors />

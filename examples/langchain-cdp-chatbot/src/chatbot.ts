@@ -51,25 +51,23 @@ async function initializeAgent() {
       }
     }
 
-    // Configure CDP Wallet Provider
-    const config = {
+    // Initialize CDP Wallet Provider
+    const cdpConfig = {
       apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
       apiKeyPrivateKey: DMNO_CONFIG.CDP_API_KEY_PRIVATE_KEY,
       cdpWalletData: walletDataStr || undefined,
       networkId: DMNO_CONFIG.NETWORK_ID,
     };
-
-    const walletProvider = await CdpWalletProvider.configureWithWallet(config);
-    // Save wallet data
+    const walletProvider = await CdpWalletProvider.configureWithWallet(cdpConfig);
+    // Initialize the wallet - which creates a new wallet if wallet data was empty
     const exportedWallet = await walletProvider.exportWallet();
+    // Write wallet data to file so it remains between restarts
     fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
 
-    const walletAddress = walletProvider.getAddress();
-    const signedMessage = await walletProvider.signMessage('log into secret agent');
-
+    // Initialize SecretAgent
     await SecretAgent.init({
-      projectId: '0x56bACCEBb3ade4b3Ead31b240867D7361b76DB71',
-      agentId: walletAddress,
+      projectId: DMNO_CONFIG.SECRETAGENT_PROJECT_ID,
+      agentId: walletProvider.getAddress(),
       agentLabel: 'cdp agentkit example',
       signMessage: (msg) => walletProvider.signMessage(msg),
     });
@@ -85,12 +83,12 @@ async function initializeAgent() {
         walletActionProvider(),
         erc20ActionProvider(),
         cdpApiActionProvider({
-          apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: DMNO_CONFIG.CDP_API_KEY_PRIVATE_KEY,
+          apiKeyName: cdpConfig.apiKeyName,
+          apiKeyPrivateKey: cdpConfig.apiKeyPrivateKey,
         }),
         cdpWalletActionProvider({
-          apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
-          apiKeyPrivateKey: DMNO_CONFIG.CDP_API_KEY_PRIVATE_KEY,
+          apiKeyName: cdpConfig.apiKeyName,
+          apiKeyPrivateKey: cdpConfig.apiKeyPrivateKey,
         }),
       ],
     });

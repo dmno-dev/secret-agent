@@ -15,6 +15,7 @@ initCommonMiddlewares(app);
 app.get('/', async (c) => {
   return c.json({ apiStatus: 'ok' });
 });
+
 app.route('/', authRoutes);
 app.route('/', agentLibRoutes);
 app.route('/', projectRoutes);
