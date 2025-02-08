@@ -206,7 +206,7 @@ export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps
               type="submit"
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
             >
-              {editingItem ? 'Update' : 'Save'}
+              {editingItem ? 'Save changes' : 'Create item'}
             </button>
           </div>
         </form>

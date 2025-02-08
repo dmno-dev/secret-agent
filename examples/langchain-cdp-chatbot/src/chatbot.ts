@@ -64,12 +64,10 @@ async function initializeAgent() {
     // Write wallet data to file so it remains between restarts
     fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
 
-    const walletAddress = walletProvider.getAddress();
-
     // Initialize SecretAgent
     await SecretAgent.init({
-      projectId: '0x56bACCEBb3ade4b3Ead31b240867D7361b76DB71',
-      agentId: walletAddress,
+      projectId: DMNO_CONFIG.SECRETAGENT_PROJECT_ID,
+      agentId: walletProvider.getAddress(),
       agentLabel: 'cdp agentkit example',
       signMessage: (msg) => walletProvider.signMessage(msg),
     });

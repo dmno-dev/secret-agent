@@ -1,22 +1,22 @@
-import { sql } from 'drizzle-orm';
+import { InferSelectModel, sql } from 'drizzle-orm';
 import { text, integer, sqliteTable, primaryKey } from 'drizzle-orm/sqlite-core';
 
 export const usersTable = sqliteTable('users', {
-  id: text('id').primaryKey(), // users wallet address
-  email: text('email'),
-  createdAt: text('created_at')
+  id: text().primaryKey(), // users wallet address
+  email: text(),
+  createdAt: text()
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 export const projectsTable = sqliteTable('projects', {
-  id: text('id').primaryKey(), // server wallet address
+  id: text().primaryKey(), // server wallet address
   privyServerWalletId: text('privy_server_wallet_id').notNull(),
-  name: text('name').notNull(),
-  ownedByUserId: text('owned_by_user_id')
+  name: text().notNull(),
+  ownedByUserId: text()
     .notNull()
     .references(() => usersTable.id),
-  createdAt: text('created_at')
+  createdAt: text()
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
@@ -27,13 +27,17 @@ export const configItemsTable = sqliteTable(
     projectId: text('project_id')
       .notNull()
       .references(() => projectsTable.id),
-    key: text('key').notNull(),
-    createdAt: text('created_at')
+    key: text().notNull(),
+    createdAt: text()
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text()
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
     itemType: text({ enum: ['llm', 'proxy', 'static'] }).notNull(),
     value: text(), // only for user-defined keys, will store encrypted
-    settings: text({ mode: 'json' }), // .$type<{ foo: string }>(),
+    settings: text({ mode: 'json' }).$type<any>(),
   },
   (table) => [
     // compound primary key
@@ -44,15 +48,20 @@ export const configItemsTable = sqliteTable(
 export const projectAgentsTable = sqliteTable(
   'project_agents',
   {
-    id: text('id'), // agent wallet address
-    projectId: text('project_id')
+    id: text().notNull(), // agent wallet address
+    projectId: text()
       .notNull()
       .references(() => projectsTable.id),
-    label: text('label'),
-    createdAt: text('created_at')
+    label: text(),
+    createdAt: text()
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
-    status: text('status', { enum: ['pending', 'enabled', 'paused', 'disabled'] })
+    updatedAt: text()
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    lastConnectedAt: text(),
+    status: text({ enum: ['pending', 'enabled', 'paused', 'disabled'] })
       .notNull()
       .default('pending'),
   },
@@ -61,3 +70,22 @@ export const projectAgentsTable = sqliteTable(
     primaryKey({ columns: [table.projectId, table.id] }),
   ]
 );
+
+export const requestsTable = sqliteTable('requests', {
+  projectId: text()
+    .notNull()
+    .references(() => projectsTable.id),
+  agentId: text().notNull(), // skip foreign key for now
+  timestamp: integer({ mode: 'timestamp_ms' }).notNull(),
+  requestId: text(), // uuid used to group together requests
+  requestDetails: text({ mode: 'json' }), // url, method, etc...
+  responseDetails: text({ mode: 'json' }),
+  requestType: text({ enum: ['init', 'llm', 'proxy'] }).notNull(),
+  cost: integer({ mode: 'number' }), // cost in ETH (gwei)
+});
+
+export type UserModel = InferSelectModel<typeof usersTable>;
+export type ProjectModel = InferSelectModel<typeof projectsTable>;
+export type ConfigItemModel = InferSelectModel<typeof configItemsTable>;
+export type AgentModel = InferSelectModel<typeof projectAgentsTable>;
+export type RequestModel = InferSelectModel<typeof requestsTable>;

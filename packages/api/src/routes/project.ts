@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
 
-import { projectsTable } from '../db/schema';
+import { configItemsTable, projectsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
 import { createPrivyServerWallet } from '../lib/privy';
 import { serializeConfigItem } from '../lib/serializers';
@@ -28,7 +28,7 @@ projectRoutes.post(
 
     const serverWalletInfo = await createPrivyServerWallet();
 
-    const newProject = await db
+    const inserted = await db
       .insert(projectsTable)
       .values({
         id: serverWalletInfo.address,
@@ -37,8 +37,31 @@ projectRoutes.post(
         ownedByUserId: c.var.authUserId,
       })
       .returning();
+    const newProject = inserted[0];
 
-    return c.json(newProject[0]);
+    await db
+      .insert(configItemsTable)
+      .values({
+        projectId: newProject.id,
+        key: 'LLM_API_KEY',
+        itemType: 'llm',
+      })
+      .returning();
+
+    await db
+      .insert(configItemsTable)
+      .values({
+        projectId: newProject.id,
+        key: 'LANGSMITH_API_KEY',
+        itemType: 'proxy',
+        settings: {
+          matchUrl: ['api.smith.langchain.com'],
+        },
+        value: 'example',
+      })
+      .returning();
+
+    return c.json(newProject);
   }
 );
 

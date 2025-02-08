@@ -14,5 +14,8 @@ export default defineDmnoService({
       required: true,
       extends: pick(),
     },
+    SECRETAGENT_PROJECT_ID: {
+      required: true,
+    }
   },
 });
