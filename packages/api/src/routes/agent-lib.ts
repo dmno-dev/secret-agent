@@ -1,5 +1,4 @@
-import { and, eq, InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import requestIp from 'request-ip';
+import { and, eq } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { Hono } from 'hono';
@@ -15,10 +14,12 @@ import {
 } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { checkUrlInPatternList } from '../lib/url-pattern-utils';
+import { ETH_TO_GWEI, getWalletEthBalance } from '../lib/eth';
 
-const STATIC_COST = 500; // $.001 usd
-const PROXY_COST = 1000; // $.002 usd
-const LLM_COST = 10000; // $.02 usd
+// costs in USD cents
+const STATIC_COST = 0.1;
+const PROXY_COST = 0.2;
+const LLM_COST = 5;
 
 export const agentLibRoutes = new Hono<
   HonoEnv & {
@@ -27,6 +28,7 @@ export const agentLibRoutes = new Hono<
       project: ProjectModel;
       configItems: Array<ConfigItemModel>;
       requestIp?: string;
+      projectWalletBalanceInfo: Awaited<ReturnType<typeof getWalletEthBalance>>;
     };
   }
 >().basePath('/agent');
@@ -83,6 +85,19 @@ agentLibRoutes.use(async (c, next) => {
   if (!project) return c.json({ error: 'Project does not exist' }, 404);
   c.set('project', project);
 
+  const projectWalletBalanceInfo = await getWalletEthBalance(project.id);
+  c.set('projectWalletBalanceInfo', projectWalletBalanceInfo);
+
+  if (projectWalletBalanceInfo.usdCents < 200) {
+    return c.json(
+      {
+        message:
+          'SecretAgent project wallet must have minimum buffer of $2usd (of ETH) for agent to make any proxy calls',
+      },
+      402 // "Payment Required" response code
+    );
+  }
+
   const configItems = await db.query.configItemsTable.findMany({
     where: eq(configItemsTable.projectId, c.var.project.id),
   });
@@ -119,19 +134,27 @@ agentLibRoutes.get('/project-metadata', async (c) => {
 
   const staticKeys = Object.keys(staticConfig);
 
+  const currentEthPriceCents = c.var.projectWalletBalanceInfo.ethPriceCents;
+
+  const costUsd = staticKeys.length ? STATIC_COST : 0;
+
   // track usage of static keys
   await db.insert(requestsTable).values({
+    id: requestId,
     projectId: project.id,
     agentId: agent.id,
     timestamp,
-    requestId,
     requestType: 'init',
     requestDetails: {
       ip: c.var.requestIp,
       staticKeys,
     },
     // small fee if using any static config
-    cost: staticKeys.length ? STATIC_COST : 0,
+    costDetails: {
+      // gwei should be safe to store as regular number/int
+      ethGwei: Math.round((costUsd / currentEthPriceCents) * ETH_TO_GWEI),
+      ethPriceCents: currentEthPriceCents,
+    },
   });
 
   return c.json({
@@ -145,15 +168,13 @@ agentLibRoutes.post('/proxy', async (c) => {
   const requestId = crypto.randomUUID();
   const timestamp = new Date();
 
-  // TODO: check project wallet balance!
+  const { db, configItems, project, agent } = c.var;
 
   const originalUrl = c.req.header('sa-original-url');
   const originalMethod = c.req.header('sa-original-method')?.toLowerCase() || 'get';
   if (!originalUrl) {
     return c.json({ error: 'Missing required header `sa-original-url`' }, 400);
   }
-
-  const { db, configItems, project, agent } = c.var;
 
   let sharedLlmConfigItem: ConfigItemModel | undefined;
   const usedProxyKeys = new Set<string>();
@@ -211,7 +232,9 @@ agentLibRoutes.post('/proxy', async (c) => {
   let response: Response;
   let llmResponseJson: any;
   let responseStatusCode: number | undefined;
-  let cost = PROXY_COST;
+
+  let costUsdCents = PROXY_COST;
+
   try {
     // make fetch call to original url
     const proxiedReqResult = await fetch(originalUrl, {
@@ -232,7 +255,7 @@ agentLibRoutes.post('/proxy', async (c) => {
     if (sharedLlmConfigItem && resultContentType === 'application/json') {
       llmResponseJson = JSON.parse(resBodyText);
       // TODO: determine LLM cost based on token usage info
-      cost = LLM_COST;
+      costUsdCents = LLM_COST;
       console.log('token usage info', llmResponseJson.usage);
     }
 
@@ -246,12 +269,13 @@ agentLibRoutes.post('/proxy', async (c) => {
     response = c.json({ secretAgentProxyError: 'Something went wrong...' }, 500);
   }
 
+  const currentEthPriceCents = c.var.projectWalletBalanceInfo.ethPriceCents;
   // track usage
   await db.insert(requestsTable).values({
+    id: requestId,
     projectId: project.id,
     agentId: agent.id,
     timestamp,
-    requestId,
     requestType: sharedLlmConfigItem ? 'llm' : 'proxy',
     requestDetails: {
       url: originalUrl,
@@ -264,7 +288,11 @@ agentLibRoutes.post('/proxy', async (c) => {
       statusCode: responseStatusCode,
       ...(llmResponseJson && { llmResponse: llmResponseJson }),
     },
-    cost,
+    costDetails: {
+      // gwei should be safe to store as regular number/int
+      ethGwei: Math.round((costUsdCents / currentEthPriceCents) * ETH_TO_GWEI),
+      ethPriceCents: currentEthPriceCents,
+    },
   });
 
   return response;

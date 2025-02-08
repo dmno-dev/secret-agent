@@ -128,6 +128,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@coinbase/coinbase-sdk':
+        specifier: ^0.17.0
+        version: 0.17.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@hono/zod-validator':
         specifier: ^0.4.2
         version: 0.4.2(hono@4.6.20)(zod@3.24.1)
@@ -143,9 +146,6 @@ importers:
       hono:
         specifier: ^4.6.20
         version: 4.6.20
-      request-ip:
-        specifier: ^3.3.0
-        version: 3.3.0
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -5488,9 +5488,6 @@ packages:
   regexp.prototype.flags@1.5.4:
     resolution: {integrity: sha512-dYqgNSZbDwkaJ2ceRd9ojCGjBq+mOm9LmtXnAnEGyHhN/5R7iDW2TRw3h+o/jCFxus3P2LfWIIiwowAjANm7IA==}
     engines: {node: '>= 0.4'}
-
-  request-ip@3.3.0:
-    resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
@@ -12003,8 +12000,6 @@ snapshots:
       get-proto: 1.0.1
       gopd: 1.2.0
       set-function-name: 2.0.2
-
-  request-ip@3.3.0: {}
 
   require-directory@2.1.1: {}
 

@@ -25,6 +25,10 @@
     "root!CLOUDFLARE_ACCOUNT_ID": {
       "encryptedValue": "oZ2NbBA28sMuk1vNdF9AaMFH58A3ABkKWAjRoVs9dotOP99prUZMnwDPz0grhF9MkkXv2O1ZSfcF9cPcYC0=",
       "updatedAt": "2025-02-05T21:47:23.854Z"
+    },
+    "root!INFURA_API_KEY_SECRET": {
+      "encryptedValue": "f2JA9QyxmId+bxS26gz1jmd2UN5leahCgiyL4D6GgDk63zrlAVGBLzEl3Fds9YlGJ4BCc59exHc+O9Eathg=",
+      "updatedAt": "2025-02-08T06:09:04.375Z"
     }
   }
 }

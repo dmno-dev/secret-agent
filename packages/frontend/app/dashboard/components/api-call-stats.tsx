@@ -1,6 +1,6 @@
 import NumberFlow from '@number-flow/react';
 import { BarChart } from 'lucide-react';
-import { useApiCallStats } from '../hooks/use-api-call-stats';
+import { useProjectCurrentPeriodStats } from '../hooks/use-api-call-stats';
 
 const format = {
   notation: 'standard',
@@ -8,7 +8,7 @@ const format = {
 } as const;
 
 export function ApiCallStats({ projectId }: { projectId: string }) {
-  const { totalCalls, isLoading } = useApiCallStats(projectId);
+  const { totalCalls, isLoading } = useProjectCurrentPeriodStats(projectId);
 
   if (isLoading) {
     return (

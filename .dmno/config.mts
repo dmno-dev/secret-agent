@@ -73,6 +73,14 @@ export default defineDmnoService({
       externalDocs: { url: 'https://docs.privy.io/guide/server-wallets/setup/api-keys' },
       sensitive: true,
       value: encryptedVault.item(),
+    },
+
+    INFURA_API_KEY: {
+      value: '70f16b5a2d3f494faf8ceeb6a3d28d17',
+    },
+    INFURA_API_KEY_SECRET: {
+      sensitive: true,
+      value: encryptedVault.item(),
     }
   },
 });
