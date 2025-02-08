@@ -1,14 +1,14 @@
 import { zValidator } from '@hono/zod-validator';
-import { and, count, eq, gt, sql, sum } from 'drizzle-orm';
+import { and, eq, gt, sql, sum } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
 
 import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
+import { convertGweiToUsd, getWalletEthBalance } from '../lib/eth';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
 import { createPrivyServerWallet } from '../lib/privy';
 import { serializeConfigItem } from '../lib/serializers';
-import { getWalletEthBalance } from '../lib/eth';
 
 export const projectRoutes = new Hono<HonoEnv>();
 
@@ -157,9 +157,6 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
   const project = c.var.project;
   const db = c.var.db;
 
-  // const balanceInfo = await getWalletEthBalance(project.id);
-  // console.log(balanceInfo);
-
   const lastMidnight = new Date(new Date().toISOString().substring(0, 10));
 
   const result = await db
@@ -179,10 +176,16 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
     })
     .from(requestsTable)
     .where(and(eq(requestsTable.projectId, project.id), gt(requestsTable.timestamp, lastMidnight)));
+
   const totals = result[0];
 
+  // Calculate USD cost using our helper function
+  const costInUsd = totals.cost ? await convertGweiToUsd(totals.cost) : 0;
+
   return c.json({
-    // balanceInfo,
-    totals,
+    totals: {
+      ...totals,
+      costInUsd,
+    },
   });
 });
