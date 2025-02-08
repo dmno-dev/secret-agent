@@ -17,11 +17,13 @@ import { useAccount, useSignMessage } from 'wagmi';
 type AuthContextType = {
   authToken: string | undefined;
   isLoading: boolean;
+  setAuthToken: (authToken: string | undefined) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   authToken: undefined,
   isLoading: true,
+  setAuthToken: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -78,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         authToken,
+        setAuthToken,
         isLoading: signMessageIsPending || !mounted,
       }}
     >
