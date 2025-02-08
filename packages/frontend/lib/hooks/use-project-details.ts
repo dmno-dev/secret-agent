@@ -11,6 +11,7 @@ interface ProjectDetailsData {
 export function useProjectDetails(projectId: string) {
   return useQuery({
     queryKey: ['project', projectId],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await secretAgentApi.get(`projects/${projectId}`);
       return response.json() as Promise<ProjectDetailsData>;

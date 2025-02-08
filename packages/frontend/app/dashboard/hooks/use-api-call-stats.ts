@@ -23,22 +23,22 @@ export type RequestStatsState = {
 };
 
 // Simulated API call - replace with real API call later
-const fetchApiCallStats = async (projectId: string): Promise<RequestStatsTotals> => {
+const fetchApiCallStats = async (projectId: string): Promise<{ totals: RequestStatsTotals }> => {
   const req = await secretAgentApi.get(`projects/${projectId}/stats`);
   return await req.json();
 };
 
 export function useProjectCurrentPeriodStats(projectId: string): RequestStatsState {
-  const { data: totals, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['apiCallStats', projectId],
     queryFn: () => fetchApiCallStats(projectId),
     refetchInterval: 2000, // Refetch every 2 seconds
     // Start with initial data to avoid layout shift
-    initialData: initialStats,
+    initialData: { totals: initialStats },
   });
 
   return {
-    totals,
+    totals: data.totals,
     isLoading,
   };
 }
