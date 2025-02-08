@@ -48,5 +48,22 @@ export default defineDmnoService({
       extends: pick(),
       required: true,
     },
+    CDP_API_KEY_NAME: {
+      extends: pick(),
+      required: true,
+    },
+    CDP_API_KEY_PRIVATE_KEY: {
+      extends: pick(),
+      required: true,
+    },
+
+    INFURA_API_KEY: {
+      extends: pick(),
+      required: true,
+    },
+    INFURA_API_KEY_SECRET: {
+      extends: pick(),
+      required: true,
+    },
   },
 });

@@ -8,6 +8,20 @@
       "when": 1738974419837,
       "tag": "0000_sparkling_proemial_gods",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1739000118733,
+      "tag": "0001_romantic_stick",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1739001418750,
+      "tag": "0002_brown_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

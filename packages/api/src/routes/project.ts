@@ -1,13 +1,14 @@
 import { zValidator } from '@hono/zod-validator';
-import { eq } from 'drizzle-orm';
+import { and, count, eq, gt, sql, sum } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
 
-import { configItemsTable, projectsTable } from '../db/schema';
+import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
 import { createPrivyServerWallet } from '../lib/privy';
 import { serializeConfigItem } from '../lib/serializers';
+import { getWalletEthBalance } from '../lib/eth';
 
 export const projectRoutes = new Hono<HonoEnv>();
 
@@ -77,7 +78,7 @@ projectRoutes.get('/projects', loggedInOnly, async (c) => {
 export const projectIdMiddleware = createMiddleware<
   HonoEnv & {
     Variables: {
-      project: any;
+      project: ProjectModel;
     };
   }
 >(async (c, next) => {
@@ -116,6 +117,9 @@ projectRoutes.get('/projects/:projectId', projectIdMiddleware, async (c) => {
     where: (t, { eq }) => eq(t.projectId, project.id),
   });
 
+  const balanceInfo = await getWalletEthBalance(project.id);
+  console.log(balanceInfo);
+
   return c.json({
     project,
     agents,
@@ -147,3 +151,38 @@ projectRoutes.patch(
     return c.json(updatedProject);
   }
 );
+
+// get project stats for the current period (since last night midnight GMT)
+projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) => {
+  const project = c.var.project;
+  const db = c.var.db;
+
+  // const balanceInfo = await getWalletEthBalance(project.id);
+  // console.log(balanceInfo);
+
+  const lastMidnight = new Date(new Date().toISOString().substring(0, 10));
+
+  const result = await db
+    .select({
+      cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
+      promptTokens: sum(sql`responseDetails->'llmResponse'->'usage'->'prompt_tokens'`).mapWith(
+        Number
+      ),
+      completionTokens: sum(
+        sql`responseDetails->'llmResponse'->'usage'->'completion_tokens'`
+      ).mapWith(Number),
+      totalTokens: sum(sql`responseDetails->'llmResponse'->'usage'->'total_tokens'`).mapWith(
+        Number
+      ),
+      proxyCount: sum(sql`CASE WHEN requestType = 'proxy' THEN 1 ELSE 0 END`).mapWith(Number),
+      llmCount: sum(sql`CASE WHEN requestType = 'llm' THEN 1 ELSE 0 END`).mapWith(Number),
+    })
+    .from(requestsTable)
+    .where(and(eq(requestsTable.projectId, project.id), gt(requestsTable.timestamp, lastMidnight)));
+  const totals = result[0];
+
+  return c.json({
+    // balanceInfo,
+    totals,
+  });
+});

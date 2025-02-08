@@ -72,16 +72,16 @@ export const projectAgentsTable = sqliteTable(
 );
 
 export const requestsTable = sqliteTable('requests', {
+  id: text().primaryKey(), // uuid as a primary key
   projectId: text()
     .notNull()
     .references(() => projectsTable.id),
   agentId: text().notNull(), // skip foreign key for now
   timestamp: integer({ mode: 'timestamp_ms' }).notNull(),
-  requestId: text(), // uuid used to group together requests
   requestDetails: text({ mode: 'json' }), // url, method, etc...
   responseDetails: text({ mode: 'json' }),
   requestType: text({ enum: ['init', 'llm', 'proxy'] }).notNull(),
-  cost: integer({ mode: 'number' }), // cost in ETH (gwei)
+  costDetails: text({ mode: 'json' }).$type<{ ethGwei: number; ethPriceCents: number }>(),
 });
 
 export type UserModel = InferSelectModel<typeof usersTable>;
