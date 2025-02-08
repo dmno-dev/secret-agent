@@ -1,4 +1,4 @@
-import { DmnoBaseTypes, defineDmnoService, pick } from 'dmno';
+import { defineDmnoService, pick } from 'dmno';
 
 export default defineDmnoService({
   schema: {
