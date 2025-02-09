@@ -81,9 +81,9 @@ export function ApiCallStats({ projectId }: { projectId: string }) {
 
   // Format hourly data for each chart
   const proxyData = hourly?.map((h) => ({ date: h.label, value: h.proxyCount }));
-  const llmData = hourly?.map((h) => ({ value: h.llmCount }));
-  const tokenData = hourly?.map((h) => ({ value: h.totalTokens }));
-  const costData = hourly?.map((h) => ({ value: h.cost }));
+  const llmData = hourly?.map((h) => ({ date: h.label, value: h.llmCount }));
+  const tokenData = hourly?.map((h) => ({ date: h.label, value: h.totalTokens }));
+  const costData = hourly?.map((h) => ({ date: h.label, value: h.cost }));
 
   return (
     <div className="space-y-4">
