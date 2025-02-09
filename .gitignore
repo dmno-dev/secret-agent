@@ -4,6 +4,7 @@ wallet_data.txt
 dist
 .DS_Store
 screenshots
+ignore 
 
 .turbo
 
