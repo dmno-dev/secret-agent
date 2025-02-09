@@ -22,6 +22,13 @@
       "when": 1739001418750,
       "tag": "0002_brown_blazing_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1739058378848,
+      "tag": "0003_chief_blade",
+      "breakpoints": true
     }
   ]
 }

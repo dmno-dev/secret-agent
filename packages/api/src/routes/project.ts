@@ -3,7 +3,8 @@ import { and, eq, gt, sql, sum } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
-import { addHours, subHours } from 'date-fns';
+import { UTCDate } from '@date-fns/utc';
+import { addHours, subHours, addMinutes, format } from 'date-fns';
 
 import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
 import { convertGweiToUsd, getWalletEthBalance } from '../lib/eth';
@@ -188,33 +189,35 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
       totalTokens: sum(sql`responseDetails->'llmResponse'->'usage'->'total_tokens'`).mapWith(
         Number
       ),
-      hour: sql`strftime('%H:%M', timestamp)`.mapWith(String),
+      time: sql`strftime('%H:%M', timestamp)`.as('time'),
     })
     .from(requestsTable)
     .where(
-      and(eq(requestsTable.projectId, project.id), sql`timestamp > datetime('now', '-24 hours')`)
+      and(eq(requestsTable.projectId, project.id), sql`timestamp > datetime('now', '-60 minutes')`)
     )
     .groupBy(sql`strftime('%H:%M', timestamp)`)
     .orderBy(sql`strftime('%H:%M', timestamp)`);
 
-  // Create array of hours for the last 24 hours
-  const hours = Array.from({ length: 24 }, (_, i) => {
-    const hour = i.toString().padStart(2, '0');
-    const minute = '00';
-    return `${hour}:${minute}`;
-  });
-
-  // Fill in the data, using 0 for missing hours
-  const hourlyData = hours.map((hour) => {
-    const data = hourlyQuery.find((q) => q.hour === hour);
-    return {
-      timestamp: hour,
+  let t = addMinutes(new UTCDate(), -60);
+  const recentData: Array<{
+    label: string;
+    cost: number;
+    proxyCount: number;
+    llmCount: number;
+    totalTokens: number;
+  }> = [];
+  for (let i = 0; i < 60; i++) {
+    const timeStr = format(t, 'KK:mm');
+    const data = hourlyQuery.find((q) => q.time === timeStr);
+    recentData.push({
+      label: timeStr,
       cost: data?.cost || 0,
       proxyCount: data?.proxyCount || 0,
       llmCount: data?.llmCount || 0,
       totalTokens: data?.totalTokens || 0,
-    };
-  });
+    });
+    t = addMinutes(t, 1);
+  }
 
   // Calculate USD cost using our helper function
   const costInUsd = totals?.cost ? await convertGweiToUsd(totals.cost) : 0;
@@ -230,6 +233,6 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
       llmCount: totals?.llmCount || 0,
       costInUsd,
     },
-    hourly: hourlyData,
+    hourly: recentData,
   });
 });

@@ -177,6 +177,9 @@ importers:
       '@coinbase/coinbase-sdk':
         specifier: ^0.17.0
         version: 0.17.0(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1)
+      '@date-fns/utc':
+        specifier: ^2.1.0
+        version: 2.1.0
       '@hono/zod-validator':
         specifier: ^0.4.2
         version: 0.4.2(hono@4.7.0)(zod@3.24.1)
@@ -445,6 +448,9 @@ packages:
   '@dagrejs/graphlib@2.2.4':
     resolution: {integrity: sha512-mepCf/e9+SKYy1d02/UkvSy6+6MoyXhVxP8lLDfA7BPE1X1d4dR0sZznmbM8/XVJ1GPM+Svnx7Xj6ZweByWUkw==}
     engines: {node: '>17.0.0'}
+
+  '@date-fns/utc@2.1.0':
+    resolution: {integrity: sha512-176grgAgU2U303rD2/vcOmNg0kGPbhzckuH1TEP2al7n0AQipZIy9P15usd2TKQCG1g+E1jX/ZVQSzs4sUDwgA==}
 
   '@dmno/cloudflare-platform@0.0.3':
     resolution: {integrity: sha512-a0hRInOIpYJdF4NZmF01U3J9ZismsT2KYo+L0ZlxBqrsukKzbDK9KpOOTFjYckBlcQ1x9TAJ6IZ9O2JOtLTGjw==}
@@ -6898,6 +6904,8 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.9
 
   '@dagrejs/graphlib@2.2.4': {}
+
+  '@date-fns/utc@2.1.0': {}
 
   '@dmno/cloudflare-platform@0.0.3(dmno@0.0.37(@types/node@22.13.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10))(wrangler@3.107.3(@cloudflare/workers-types@4.20250204.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:

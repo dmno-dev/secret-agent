@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@coinbase/coinbase-sdk": "^0.17.0",
+    "@date-fns/utc": "^2.1.0",
     "@hono/zod-validator": "^0.4.2",
     "@privy-io/server-auth": "^1.18.5",
     "date-fns": "^4.1.0",

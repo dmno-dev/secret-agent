@@ -77,7 +77,9 @@ export const requestsTable = sqliteTable('requests', {
     .notNull()
     .references(() => projectsTable.id),
   agentId: text().notNull(), // skip foreign key for now
-  timestamp: integer({ mode: 'timestamp_ms' }).notNull(),
+  timestamp: text()
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
   requestDetails: text({ mode: 'json' }), // url, method, etc...
   responseDetails: text({ mode: 'json' }),
   requestType: text({ enum: ['init', 'llm', 'proxy'] }).notNull(),

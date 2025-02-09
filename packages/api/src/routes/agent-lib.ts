@@ -109,7 +109,7 @@ agentLibRoutes.use(async (c, next) => {
 // endpoint used by client lib to fetch minimal project metadata
 agentLibRoutes.get('/project-metadata', async (c) => {
   const requestId = crypto.randomUUID();
-  const timestamp = new Date();
+  const timestamp = new Date().toISOString();
   const { db, configItems, project, agent } = c.var;
 
   const domainPatterns = new Set<string>();
@@ -128,7 +128,7 @@ agentLibRoutes.get('/project-metadata', async (c) => {
   await db
     .update(projectAgentsTable)
     .set({
-      lastConnectedAt: timestamp.toISOString(),
+      lastConnectedAt: timestamp,
     })
     .where(and(eq(projectAgentsTable.projectId, project.id), eq(projectAgentsTable.id, agent.id)));
 
@@ -166,7 +166,7 @@ agentLibRoutes.get('/project-metadata', async (c) => {
 // proxy endpoint used by client lib
 agentLibRoutes.post('/proxy', async (c) => {
   const requestId = crypto.randomUUID();
-  const timestamp = new Date();
+  const timestamp = new Date().toISOString();
 
   const { db, configItems, project, agent } = c.var;
 
