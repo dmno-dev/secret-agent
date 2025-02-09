@@ -92,7 +92,7 @@ export function AgentsList({ agents, projectId }: AgentsListProps) {
       <button
         onClick={() => setShowAddModal(true)}
         disabled={isLoading}
-        className="w-full p-2 border border-dashed border-gray-300 dark:border-green-400 rounded-lg text-gray-500 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full p-2 border border-dashed border-gray-300 dark:border-green-400 md text-gray-500 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Plus className="w-4 h-4" />
         <span>Add new agent</span>

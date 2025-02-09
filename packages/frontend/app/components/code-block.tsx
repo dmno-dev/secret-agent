@@ -18,7 +18,12 @@ export function CodeBlock({
 }: CodeBlockProps) {
   return (
     <div className="w-full">
-      <SyntaxHighlighter language={language} style={nightOwl} showLineNumbers={showLineNumbers}>
+      <SyntaxHighlighter
+        language={language}
+        style={nightOwl}
+        showLineNumbers={showLineNumbers}
+        className="!px-4 rounded-sm dark:!bg-gray-950"
+      >
         {code}
       </SyntaxHighlighter>
     </div>

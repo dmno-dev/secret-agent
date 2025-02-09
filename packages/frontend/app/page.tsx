@@ -8,7 +8,7 @@ import { Terminal } from './components/terminal';
 export default function Home() {
   return (
     <Terminal>
-      <div className="p-8 min-h-full flex flex-col">
+      <div className="p-8 min-h-full flex flex-col homepage">
         <Hero />
         <Features />
         <HowItWorks />

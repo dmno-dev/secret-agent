@@ -1,13 +1,18 @@
 'use client';
 
-import { BarChart, Coins, Key, Lock, LucideIcon, Shield, Zap } from 'lucide-react';
+import { Cctv, Coins, EyeOff, KeyRound, LucideIcon, RefreshCwOff, Zap } from 'lucide-react';
 import { useScrambleEffect } from '../../hooks/use-scramble-effect';
 
 const features = [
   {
-    icon: Shield,
-    title: 'Proxy Service',
+    icon: EyeOff,
+    title: 'Secure Proxy Service',
     description: 'Hide API keys from agents',
+  },
+  {
+    icon: KeyRound,
+    title: 'Keyless LLM Access',
+    description: 'Toggle providers & settings on the fly',
   },
   {
     icon: Zap,
@@ -15,21 +20,20 @@ const features = [
     description: 'Pay-as-you-go with crypto',
   },
   {
-    icon: Key,
-    title: 'Instant Revocation',
-    description: 'Deadman switch for access control',
-  },
-  {
     icon: Coins,
-    title: 'Self-Funding',
+    title: 'Agent Self-Funded LLM Usage',
     description: 'Autonomous agent capabilities',
   },
   {
-    icon: BarChart,
-    title: 'Usage Tracking',
-    description: 'Monitor and control budgets',
+    icon: RefreshCwOff,
+    title: 'Instant Access Revocation',
+    description: 'Deadman switch for access control',
   },
-  { icon: Lock, title: 'Key Rotation', description: 'Automatic and seamless' },
+  {
+    icon: Cctv,
+    title: 'Usage Tracking & Logs',
+    description: 'Monitor activity and control budgets',
+  },
 ];
 
 function FeatureItem({
@@ -57,7 +61,7 @@ function FeatureItem({
       <Icon className="w-6 h-6 mt-1 text-green-400" />
       <div>
         <h3 className="font-bold">{scrambledTitle}</h3>
-        <p className="text-gray-400">{scrambledDescription}</p>
+        <p className="dark:text-gray-300 text-gray-600">{scrambledDescription}</p>
       </div>
     </div>
   );
@@ -66,7 +70,7 @@ function FeatureItem({
 export function Features() {
   return (
     <section className="mb-8">
-      <h2 className="text-2xl font-bold mb-4 font-mono">$ ls features</h2>
+      <h2 className="">ls features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {features.map((feature, index) => (
           <FeatureItem key={index} {...feature} />

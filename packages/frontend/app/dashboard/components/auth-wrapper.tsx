@@ -41,7 +41,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <Terminal>
       <div className="flex flex-col">
-        <main className="flex-grow p-6">{children}</main>
+        <main className="flex-grow p-4 mb-4">{children}</main>
         <CommandLine />
       </div>
     </Terminal>

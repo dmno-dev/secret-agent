@@ -1,13 +1,10 @@
 'use client';
-
-import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
 import { HelpCircle, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
 import { useState } from 'react';
-import { useAccount, useDisconnect } from 'wagmi';
 import { DocsModal } from '../dashboard/components/docs-modal';
 import { WalletButton } from './wallet-button';
 
@@ -25,7 +22,7 @@ export function Terminal({ children }: TerminalProps) {
   const siteTitle = useTypingEffect('SecretAgent.sh', 50);
 
   return (
-    <div className="bg-white dark:bg-black text-gray-900 dark:text-green-400 p-4 transition-colors duration-100">
+    <div className="bg-white dark:bg-black text-green-500 dark:text-green-400 p-4 transition-colors duration-50">
       <div className="max-w-6xl mx-auto terminal-window rounded-lg overflow-hidden border border-gray-300 dark:border-green-400">
         <div className="flex justify-between items-center bg-gray-200 dark:bg-green-900 p-2 rounded-t-lg">
           <div className="flex items-center space-x-4">
@@ -57,7 +54,7 @@ export function Terminal({ children }: TerminalProps) {
                     fill="currentColor"
                   />
                 </svg>
-                <h1 className="text-3xl font-bold">{siteTitle}</h1>
+                <h1 className="text-3xl">{siteTitle}</h1>
               </a>
             </div>
           </div>
