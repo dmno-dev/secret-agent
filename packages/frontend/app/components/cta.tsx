@@ -16,7 +16,7 @@ export function CTA() {
 
   return (
     <section className="mb-8">
-      <h2 className="text-2xl font-bold mb-4 font-mono">$ curl secretagent.sh/start</h2>
+      <h2 className="">curl secretagent.sh/start</h2>
 
       <Link
         href="/dashboard"

@@ -1,12 +1,12 @@
 export function HowItWorks() {
   return (
     <section className="mb-8">
-      <h2 className="text-2xl font-bold mb-4 font-mono">$ cat how_it_works.txt</h2>
-      <ol className="list-decimal list-inside space-y-2 text-gray-400">
-        <li>Sign up for SecretAgent and create a project</li>
-        <li>Add your secrets to the project</li>
-        <li>Add your agents to the project</li>
-        <li>Add our integration to your agents</li>
+      <h2>cat how_it_works.txt</h2>
+      <ol className="list-decimal pl-2 list-inside space-y-2 dark:text-gray-300 text-gray-600">
+        <li>Create an account and a new SecretAgent project</li>
+        <li>Add our JavaScript SDK to your agent code</li>
+        <li>Configure project secrets - use our API keys or bring your own</li>
+        <li>Approve agents to grant them access</li>
         <li>Deploy your agents with confidence, knowing your keys are secure</li>
         <li>Monitor usage, rotate keys, and manage access in real-time</li>
       </ol>

@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 
 export function CustomBarChart({ data, title, description, bars }: BarChartProps) {
   return (
-    <div className="flex flex-col p-3 border border-gray-200 dark:border-green-400/30 rounded h-full">
+    <div className="flex flex-col p-3 border border-gray-200 dark:border-green-400/30 rounded h-full dark:bg-gray-900 bg-gray-300">
       <div className="text-sm text-gray-500 dark:text-green-400/70">{title}</div>
       {description && (
         <div className="text-xs text-gray-500 dark:text-green-400/50">{description}</div>

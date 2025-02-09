@@ -9,8 +9,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)'],
-        mono: ['var(--font-geist-mono)'],
+        sans: ['var(--body-font)'],
+        mono: ['var(--code-font)'],
       },
       colors: {
         border: 'hsl(var(--border))',

@@ -23,11 +23,17 @@ const initialStats: RequestStatsTotals = {
 
 export type RequestStatsState = {
   totals: RequestStatsTotals;
+  hourly: Array<RequestStatsTotals & { label: string }>;
   isLoading: boolean;
 };
 
 // Simulated API call - replace with real API call later
-const fetchApiCallStats = async (projectId: string): Promise<{ totals: RequestStatsTotals }> => {
+const fetchApiCallStats = async (
+  projectId: string
+): Promise<{
+  totals: RequestStatsTotals;
+  hourly: Array<RequestStatsTotals & { label: string }>;
+}> => {
   const req = await secretAgentApi.get(`projects/${projectId}/stats`);
   return await req.json();
 };
@@ -38,7 +44,7 @@ export function useProjectCurrentPeriodStats(projectId: string): RequestStatsSta
     queryFn: () => fetchApiCallStats(projectId),
     refetchInterval: 2000, // Refetch every 2 seconds
     // Start with initial data to avoid layout shift
-    initialData: { totals: initialStats },
+    initialData: { totals: initialStats, hourly: [] },
   });
 
   return {

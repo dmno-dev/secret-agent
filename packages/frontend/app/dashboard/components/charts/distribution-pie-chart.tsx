@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 
 export function DistributionPieChart({ data, title, description }: DistributionPieChartProps) {
   return (
-    <div className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-green-400/30 rounded">
+    <div className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-green-400/30 rounded dark:bg-gray-900 bg-gray-300">
       <div className="space-y-0.5 flex-1">
         <div className="text-sm text-gray-500 dark:text-green-400/70">{title}</div>
         {description && (

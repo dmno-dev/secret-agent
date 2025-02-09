@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    /* override coinbase widgets font */
+    --ock-font-family: var(--body-font);
+
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
 
@@ -96,10 +99,12 @@
   }
 
   @keyframes cursor {
+
     0%,
     100% {
       opacity: 0;
     }
+
     50% {
       opacity: 1;
     }
@@ -138,11 +143,9 @@
 
   /* Scanline effect */
   .scanline {
-    background: linear-gradient(
-      to bottom,
-      transparent 50%,
-      rgba(0, 0, 0, 0.02) 50%
-    );
+    background: linear-gradient(to bottom,
+        transparent 50%,
+        rgba(0, 0, 0, 0.02) 50%);
     background-size: 100% 4px;
     pointer-events: none;
   }
@@ -174,6 +177,7 @@
     0% {
       content: attr(data-text);
     }
+
     100% {
       content: attr(data-scrambled);
     }
@@ -228,7 +232,7 @@ pre code {
 /* Coinbase custom styles */
 .custom-light {
   /* Font and Shape */
-  --ock-font-family: var(--font-geist-sans);
+  --ock-font-family: var(--body-font);
   --ock-border-radius: 0.5rem;
   --ock-border-radius-inner: 0.25rem;
 
@@ -283,7 +287,7 @@ pre code {
 
 .custom-dark {
   /* Font and Shape */
-  --ock-font-family: var(--font-geist-sans);
+
   --ock-border-radius: 0.5rem;
   --ock-border-radius-inner: 0.25rem;
 
@@ -336,10 +340,29 @@ pre code {
   --ock-border-line-inverse: #000000;
 }
 
+.homepage h2 {
+  @apply font-mono text-green-400 text-2xl mb-2 mt-2 font-bold;
+
+  &:before {
+    content: '$';
+    @apply mr-3;
+  }
+}
+
+code {
+  font-size: 14px;
+}
+
+code span {
+  font-style: normal !important;
+
+}
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

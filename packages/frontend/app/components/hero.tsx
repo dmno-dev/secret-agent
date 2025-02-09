@@ -13,17 +13,18 @@ export function Hero() {
   }, []);
 
   const subtitle = useTypingEffect(
-    showSubtitle ? 'Crypto-native, on-demand, secrets for AI Agents' : '',
+    showSubtitle ? 'Secure secret management for crypto-native AI agents' : '',
     30
   );
 
   return (
     <section className="mb-8">
       {/* <h1 className="text-4xl font-bold mb-4 font-mono">{title}</h1> */}
-      <p className="text-xl mb-4 h-7 terminal-cursor font-mono">{subtitle}</p>
-      <p className="text-gray-400">
-        SecretAgent.sh provides a zero-trust secrets management platform for AI Agents, including
-        on-demand access to LLM providers with pay-as-you-go pricing.
+      <p className="text-2xl mb-2 h-7 terminal-cursor font-mono text-green-400 font-bold">
+        {subtitle}
+      </p>
+      <p className="text-lg dark:text-gray-200 text-gray-500">
+        Protect your secrets, monitor your agents, simplify development
       </p>
     </section>
   );
