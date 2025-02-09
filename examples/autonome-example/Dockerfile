@@ -1,16 +1,13 @@
-# Builder stage
-FROM node:22-slim AS builder
+# Use Alpine-based Node.js image for smaller size and better stability
+FROM node:20-alpine AS builder
 
-# Install pnpm and build dependencies in one layer to minimize space usage
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Install pnpm and build dependencies
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    build-essential && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    npm install -g pnpm@latest && \
+    build-base && \
+    npm install -g pnpm@9.15.4 && \
     npm cache clean --force
 
 # Set the working directory
@@ -30,10 +27,12 @@ COPY src ./src
 RUN pnpm build
 
 # Final runtime image
-FROM node:22-slim
+FROM node:20-alpine
 
-# Install pnpm and clean up in one layer
-RUN npm install -g pnpm@latest && \
+# Install pnpm and runtime dependencies
+RUN apk add --no-cache \
+    python3 && \
+    npm install -g pnpm@9.15.4 && \
     npm cache clean --force
 
 # Set the working directory
@@ -48,13 +47,5 @@ COPY --from=builder /app/src ./src
 # Expose the chatbot port
 EXPOSE 3001
 
-# Create an entrypoint script
-COPY <<-"EOF" /usr/local/bin/docker-entrypoint.sh
-#!/bin/sh
-set -e
-exec pnpm start
-EOF
-
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"] 
+# Command to start the application
+CMD ["pnpm", "start"] 
