@@ -43,6 +43,7 @@ export function useProjectCurrentPeriodStats(projectId: string): RequestStatsSta
 
   return {
     totals: data.totals,
+    hourly: data.hourly,
     isLoading,
   };
 }

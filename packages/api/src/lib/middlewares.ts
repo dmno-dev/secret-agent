@@ -34,7 +34,7 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
 
   // set up db connection
   app.use(async (c, next) => {
-    const db = drizzle(c.env.DB, { schema });
+    const db = drizzle(c.env.DB, { schema, logger: true });
     c.set('db', db);
     await next();
   });

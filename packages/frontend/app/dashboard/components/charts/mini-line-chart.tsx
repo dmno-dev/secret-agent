@@ -22,7 +22,7 @@ export function MiniLineChart({ data }: MiniLineChartProps) {
     { date: '2024-01-07', value: 3 },
   ];
 
-  const chartData = data || defaultData;
+  const chartData = data ? data : defaultData;
 
   return (
     <div className="w-24 h-8">
