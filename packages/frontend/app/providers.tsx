@@ -10,7 +10,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { WagmiProvider } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
 
-import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
+import { AUTH_ID_LOCALSTORAGE_KEY, AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
 import { toast } from 'sonner';
 import { useAccount, useSignMessage } from 'wagmi';
 
@@ -31,7 +31,7 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [authToken, setAuthToken] = useState<string>();
-  const { isConnected: walletIsConnected } = useAccount();
+  const { isConnected: walletIsConnected, address: connectedWalletAddress } = useAccount();
 
   const {
     data: signMessageData,
@@ -60,8 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (signMessageData) {
+      console.log('message signed!', signMessageData);
+
       setAuthToken(signMessageData);
       window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, signMessageData);
+      window.localStorage.setItem(AUTH_ID_LOCALSTORAGE_KEY, connectedWalletAddress!);
       toast.success('Successfully authenticated');
     }
   }, [signMessageData]);

@@ -1,10 +1,14 @@
 import ky from 'ky';
 
 export const AUTH_KEY_LOCALSTORAGE_KEY = 'SA_AUTH_TOKEN';
+export const AUTH_ID_LOCALSTORAGE_KEY = 'SA_AUTH_ID';
 
-const getAuthToken = () => {
+const getAuthInfo = () => {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(AUTH_KEY_LOCALSTORAGE_KEY);
+  return {
+    id: window.localStorage.getItem(AUTH_ID_LOCALSTORAGE_KEY)!,
+    auth: window.localStorage.getItem(AUTH_KEY_LOCALSTORAGE_KEY)!,
+  };
 };
 
 export const secretAgentApi = ky.extend({
@@ -13,10 +17,11 @@ export const secretAgentApi = ky.extend({
     beforeRequest: [
       (req) => {
         console.log('making request!', req.url);
-        const authToken = getAuthToken();
+        const authInfo = getAuthInfo();
 
-        if (!authToken) throw new Error('not logged in');
-        req.headers.set('sa-admin-auth', authToken);
+        if (!authInfo) throw new Error('not logged in');
+        req.headers.set('sa-admin-auth', authInfo.auth);
+        req.headers.set('sa-user-id', authInfo.id);
       },
     ],
   },

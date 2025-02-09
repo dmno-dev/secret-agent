@@ -1,6 +1,6 @@
 'use client';
 
-import { AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
+import { AUTH_ID_LOCALSTORAGE_KEY, AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
 import { Address, EthBalance, Identity } from '@coinbase/onchainkit/identity';
 import {
   ConnectWallet,
@@ -22,6 +22,7 @@ export function WalletButton() {
     if (!isConnected && authToken) {
       setAuthToken(undefined);
       window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
+      window.localStorage.removeItem(AUTH_ID_LOCALSTORAGE_KEY);
     }
   }, [isConnected, authToken, setAuthToken]);
 

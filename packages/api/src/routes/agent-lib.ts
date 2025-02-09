@@ -95,7 +95,7 @@ agentLibRoutes.use(async (c, next) => {
       cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
     })
     .from(requestsTable)
-    .where(and(eq(requestsTable.projectId, project.id), gt(requestsTable.timestamp, lastMidnight)));
+    .where(and(eq(requestsTable.projectId, project.id), sql`DATE(timestamp) = CURRENT_DATE`));
 
   const usageUsd = await convertGweiToUsd(usageResult[0].cost);
   const effectiveBalance = projectWalletBalanceInfo.usdCents - usageUsd;
@@ -115,15 +115,15 @@ agentLibRoutes.get('/project-metadata', async (c) => {
   const timestamp = new Date().toISOString();
   const { db, configItems, project, agent } = c.var;
 
-  if (c.var.projectEffectiveBalanceCents < 100) {
-    return c.json(
-      {
-        message:
-          'SecretAgent project wallet must have minimum buffer of $1usd (of ETH) for agent to connect',
-      },
-      402 // "Payment Required" response code
-    );
-  }
+  // if (c.var.projectEffectiveBalanceCents < 100) {
+  //   return c.json(
+  //     {
+  //       message:
+  //         'SecretAgent project wallet must have minimum buffer of $1usd (of ETH) for agent to connect',
+  //     },
+  //     402 // "Payment Required" response code
+  //   );
+  // }
 
   const domainPatterns = new Set<string>();
   const staticConfig = {} as Record<string, string>;

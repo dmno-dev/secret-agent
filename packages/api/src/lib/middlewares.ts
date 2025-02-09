@@ -45,16 +45,27 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
     const authMessage = c.req.header('sa-admin-auth');
     if (!authMessage) return next();
 
-    // this message must match the frontend
-    // ideally we replace the flow with exchanging a message for a JWT cookie
-    const verifiedAddress = await ethers.verifyMessage(
-      'You are logging into SecretAgent.sh',
-      authMessage
-    );
-    console.log('user authd', verifiedAddress);
-
+    let verifiedAddress: string;
+    // eslint-disable-next-line no-useless-catch
+    try {
+      // this message must match the frontend
+      // ideally we replace the flow with exchanging a message for a JWT cookie
+      verifiedAddress = await ethers.verifyMessage(
+        'You are logging into SecretAgent.sh',
+        authMessage
+      );
+      console.log('user authd', verifiedAddress);
+    } catch (err) {
+      throw err;
+      // // coinbase smart wallet having some weird issues with the signed message, so this is temporary insecure workaround
+      // if (c.req.header('sa-user-id')) {
+      //   verifiedAddress = c.req.header('sa-user-id')!;
+      //   console.log('faking auth', verifiedAddress);
+      // } else {
+      //   return next();
+      // }
+    }
     c.set('authUserId', verifiedAddress);
-
     // fetch the user from the database
     const db = c.var.db;
     const authUser = await db.query.usersTable.findFirst({
