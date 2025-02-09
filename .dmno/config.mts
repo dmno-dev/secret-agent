@@ -44,7 +44,7 @@ export default defineDmnoService({
     NETWORK_ID: {
       value: 'base-sepolia',
       extends: DmnoBaseTypes.enum([
-        'base', 'base-sepoloa',
+        'base', 'base-sepolia',
         'arbitrum', 'arbitrum-sepolia',
       ])
     },
