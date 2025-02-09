@@ -6,10 +6,11 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import * as schema from '../db/schema';
 
+export type CloudflareEnvBindings = {
+  DB: D1Database;
+};
 export type HonoEnv = {
-  Bindings: {
-    DB: D1Database;
-  };
+  Bindings: CloudflareEnvBindings;
   Variables: {
     db: DrizzleD1Database<typeof schema>;
     authUser?: any;

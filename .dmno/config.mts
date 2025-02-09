@@ -26,6 +26,12 @@ export default defineDmnoService({
       value: 'local',
     },
 
+    BILLING_WALLET_ADDRESS: {
+      description: 'App owned wallet which collects all fees',
+      value: '0x7f448FA8cc5db07E8e4eF382B6453b91Bd9B05a6',
+      required: true,
+    },
+
     ...pickFromSchemaObject(CloudflareWranglerEnvSchema, {
       CLOUDFLARE_ACCOUNT_ID: {
         value: encryptedVault.item(),
@@ -37,6 +43,10 @@ export default defineDmnoService({
 
     NETWORK_ID: {
       value: 'base-sepolia',
+      extends: DmnoBaseTypes.enum([
+        'base', 'base-sepoloa',
+        'arbitrum', 'arbitrum-sepolia',
+      ])
     },
     
     OPENAI_API_KEY: {
@@ -73,6 +83,11 @@ export default defineDmnoService({
       externalDocs: { url: 'https://docs.privy.io/guide/server-wallets/setup/api-keys' },
       sensitive: true,
       value: encryptedVault.item(),
+    },
+    PRIVY_SERVER_WALLET_POLICY_ID: {
+      description: 'id of default server wallet policy',
+      value: 'n06xo08hs66qbi3ln0w91srd',
+      required: true,
     },
 
     INFURA_API_KEY: {

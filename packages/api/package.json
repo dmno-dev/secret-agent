@@ -3,7 +3,7 @@
   "description": "SecretAgent.sh api",
   "private": true,
   "scripts": {
-    "dev": "dwrangler dev --local-protocol https --local --env local --https-key-path ../frontend/certificates/localhost-key.pem --https-cert-path ../frontend/certificates/localhost.pem",
+    "dev": "dwrangler dev --local-protocol https --local --env local --https-key-path ../frontend/certificates/localhost-key.pem --https-cert-path ../frontend/certificates/localhost.pem --test-scheduled",
     "deploy:production": "pnpm run --filter @secretagent.sh/frontend build && dmno run -- dwrangler deploy --env production",
     "db:generate": "drizzle-kit generate",
     "db:regenerate": "drizzle-kit drop && drizzle-kit generate",
@@ -24,6 +24,7 @@
     "drizzle-orm": "^0.39.1",
     "ethers": "^6.13.5",
     "hono": "^4.6.20",
+    "ky": "^1.7.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
