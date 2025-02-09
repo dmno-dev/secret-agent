@@ -198,6 +198,9 @@ importers:
       hono:
         specifier: ^4.6.20
         version: 4.7.0
+      ky:
+        specifier: ^1.7.4
+        version: 1.7.4
       zod:
         specifier: ^3.24.1
         version: 3.24.1

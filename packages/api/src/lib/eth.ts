@@ -1,17 +1,39 @@
 import { Coinbase } from '@coinbase/coinbase-sdk';
 import { ethers } from 'ethers';
 
+export const SUPPORTED_CHAIN_IDS = {
+  ethereum: 1,
+  base: 8453,
+  'base-sepolia': 84532,
+  arbitrum: 42161,
+  'arbitrum-sepolia': 421614,
+};
+
+export const ETH_TO_GWEI = 1000000000;
+export const GWEI_TO_WEI = 1000000000;
+
 Coinbase.configure({
   apiKeyName: DMNO_CONFIG.CDP_API_KEY_NAME,
   privateKey: DMNO_CONFIG.CDP_API_KEY_PRIVATE_KEY,
 });
 
-export const ETH_TO_GWEI = 1000000000;
+let ethUsdPriceCents: number | undefined;
+let ethUsdPriceLastUpdated: Date | undefined;
+const CACHE_ETH_PRICE_DURATION = 10000; // cache price for 10 sec
 
 export async function getEthUsdPrice(): Promise<number> {
+  if (
+    ethUsdPriceCents &&
+    ethUsdPriceLastUpdated &&
+    +new Date() - +ethUsdPriceLastUpdated < CACHE_ETH_PRICE_DURATION
+  ) {
+    return ethUsdPriceCents;
+  }
+
   const ethSpotReq = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
   const ethSpotData: any = await ethSpotReq.json();
-  return parseFloat(ethSpotData.data.amount);
+  ethUsdPriceCents = parseFloat(ethSpotData.data.amount);
+  return ethUsdPriceCents;
 }
 
 export async function convertGweiToUsd(gweiAmount: number): Promise<number> {

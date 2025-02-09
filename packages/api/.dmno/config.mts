@@ -15,6 +15,7 @@ export default defineDmnoService({
       required: true,
     },
     SECRETAGENT_WEB_URL: pick('frontend'),
+    BILLING_WALLET_ADDRESS: pick(),
 
     CLOUDFLARE_ACCOUNT_ID: pick(),
     CLOUDFLARE_API_TOKEN: pick(),
@@ -48,6 +49,10 @@ export default defineDmnoService({
       extends: pick(),
       required: true,
     },
+    PRIVY_SERVER_WALLET_POLICY_ID: {
+      extends: pick(),
+    },
+
     CDP_API_KEY_NAME: {
       extends: pick(),
       required: true,

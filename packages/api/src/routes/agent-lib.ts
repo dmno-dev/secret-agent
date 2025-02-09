@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gt, sql, sum } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { Hono } from 'hono';
@@ -14,7 +14,7 @@ import {
 } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { checkUrlInPatternList } from '../lib/url-pattern-utils';
-import { ETH_TO_GWEI, getWalletEthBalance } from '../lib/eth';
+import { convertGweiToUsd, ETH_TO_GWEI, getWalletEthBalance } from '../lib/eth';
 
 // costs in USD cents
 const STATIC_COST = 0.1;
@@ -29,6 +29,7 @@ export const agentLibRoutes = new Hono<
       configItems: Array<ConfigItemModel>;
       requestIp?: string;
       projectWalletBalanceInfo: Awaited<ReturnType<typeof getWalletEthBalance>>;
+      projectEffectiveBalanceCents: number;
     };
   }
 >().basePath('/agent');
@@ -88,15 +89,17 @@ agentLibRoutes.use(async (c, next) => {
   const projectWalletBalanceInfo = await getWalletEthBalance(project.id);
   c.set('projectWalletBalanceInfo', projectWalletBalanceInfo);
 
-  if (projectWalletBalanceInfo.usdCents < 200) {
-    return c.json(
-      {
-        message:
-          'SecretAgent project wallet must have minimum buffer of $2usd (of ETH) for agent to make any proxy calls',
-      },
-      402 // "Payment Required" response code
-    );
-  }
+  const lastMidnight = new Date(new Date().toISOString().substring(0, 10));
+  const usageResult = await db
+    .select({
+      cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
+    })
+    .from(requestsTable)
+    .where(and(eq(requestsTable.projectId, project.id), gt(requestsTable.timestamp, lastMidnight)));
+
+  const usageUsd = await convertGweiToUsd(usageResult[0].cost);
+  const effectiveBalance = projectWalletBalanceInfo.usdCents - usageUsd;
+  c.set('projectEffectiveBalanceCents', effectiveBalance);
 
   const configItems = await db.query.configItemsTable.findMany({
     where: eq(configItemsTable.projectId, c.var.project.id),
@@ -111,6 +114,16 @@ agentLibRoutes.get('/project-metadata', async (c) => {
   const requestId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
   const { db, configItems, project, agent } = c.var;
+
+  if (c.var.projectEffectiveBalanceCents < 100) {
+    return c.json(
+      {
+        message:
+          'SecretAgent project wallet must have minimum buffer of $1usd (of ETH) for agent to connect',
+      },
+      402 // "Payment Required" response code
+    );
+  }
 
   const domainPatterns = new Set<string>();
   const staticConfig = {} as Record<string, string>;
@@ -216,15 +229,73 @@ agentLibRoutes.post('/proxy', async (c) => {
   delete headersJson['cf-connecting-ip'];
 
   let bodyToSend: string | Blob | undefined;
+  let reqBodyObj: Record<string, any> | undefined;
   if (headersJson['content-type'] === 'application/json' && sharedLlmConfigItem) {
     // example showing changing the request config (model, etc)
-    const reqBodyObj = await c.req.json();
+    reqBodyObj = await c.req.json();
 
     // TODO: swap params, adjust content length?
 
     bodyToSend = JSON.stringify(reqBodyObj);
   } else if (originalMethod !== 'get' && originalMethod !== 'head') {
     bodyToSend = await c.req.blob();
+  }
+
+  // TODO: estimate cost based on input and model
+  if (c.var.projectEffectiveBalanceCents < 200) {
+    if (sharedLlmConfigItem) {
+      // we embed our error message in a normal looking response, so the chat agent continues
+      return c.json({
+        id: `chatcmpl-error${+new Date()}`,
+        object: 'chat.completion',
+        created: +new Date(),
+        model: reqBodyObj!.model,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: [
+                '',
+                "> 🤑 Sorry I'm running low on LLM credits",
+                // TODO: add correct chain
+                `> 💸 Please send ETH to ${project.id} (on Base Sepolia) and try your request again.`,
+                '>> This agent is powered by https://SecretAgent.sh 😎 <<',
+                '',
+              ].join('\n'),
+              refusal: null,
+            },
+            logprobs: null,
+            finish_reason: 'stop',
+          },
+        ],
+        usage: {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          total_tokens: 0,
+          prompt_tokens_details: {
+            cached_tokens: 0,
+            audio_tokens: 0,
+          },
+          completion_tokens_details: {
+            reasoning_tokens: 0,
+            audio_tokens: 0,
+            accepted_prediction_tokens: 0,
+            rejected_prediction_tokens: 0,
+          },
+        },
+        service_tier: 'default',
+        system_fingerprint: 'fp_72ed7ab54c',
+      });
+    } else {
+      return c.json(
+        {
+          message:
+            'SecretAgent project wallet has insufficient funds to make a proxied API request',
+        },
+        402 // "Payment Required" response code
+      );
+    }
   }
 
   // do we want to allow substitution in URL?
@@ -247,19 +318,21 @@ agentLibRoutes.post('/proxy', async (c) => {
     const resultContentType = proxiedReqResult.headers.get('content-type');
     if (resultContentType) c.header('content-type', resultContentType);
 
-    if (proxiedReqResult.status !== 200) {
+    if (proxiedReqResult.status >= 400) {
       console.log('Error!', resBodyText);
     }
 
     // record some stats about tokens if this was an LLM request
     if (sharedLlmConfigItem && resultContentType === 'application/json') {
       llmResponseJson = JSON.parse(resBodyText);
+      console.log(JSON.stringify(llmResponseJson));
       // TODO: determine LLM cost based on token usage info
       costUsdCents = LLM_COST;
       console.log('token usage info', llmResponseJson.usage);
+    } else {
+      console.log('response', resBodyText);
     }
 
-    console.log('response', resBodyText);
     responseStatusCode = proxiedReqResult.status;
 
     response = c.body(resBodyText, proxiedReqResult.status as any);

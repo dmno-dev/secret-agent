@@ -9,7 +9,11 @@ import { addHours, subHours, addMinutes, format } from 'date-fns';
 import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
 import { convertGweiToUsd, getWalletEthBalance } from '../lib/eth';
 import { HonoEnv, loggedInOnly } from '../lib/middlewares';
-import { createPrivyServerWallet } from '../lib/privy';
+import {
+  addDefaultPolicyToPrivyServerWallet,
+  createPrivyServerWallet,
+  updateServerWalletPolicy,
+} from '../lib/privy';
 import { serializeConfigItem } from '../lib/serializers';
 
 export const projectRoutes = new Hono<HonoEnv>();
