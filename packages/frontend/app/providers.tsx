@@ -48,9 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.log('walletIsConnected', walletIsConnected);
-    console.log('authToken', authToken);
-
     if (walletIsConnected && !authToken) {
       signMessage({
         message: ['You are logging into SecretAgent.sh'].join('\n'),
@@ -60,18 +57,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (signMessageData) {
-      console.log('message signed!', signMessageData);
+      // For Coinbase WebAuthn signatures, we don't need to modify the format
+      const formattedSignature = signMessageData;
 
-      setAuthToken(signMessageData);
-      window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, signMessageData);
+      setAuthToken(formattedSignature);
+      window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, formattedSignature);
       window.localStorage.setItem(AUTH_ID_LOCALSTORAGE_KEY, connectedWalletAddress!);
       toast.success('Successfully authenticated');
     }
-  }, [signMessageData]);
+  }, [signMessageData, connectedWalletAddress]);
 
   useEffect(() => {
     if (signMessageError && !authToken) {
+      console.error('Authentication error:', signMessageError);
       toast.error('Failed to authenticate: ' + signMessageError.message);
+      window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
+      window.localStorage.removeItem(AUTH_ID_LOCALSTORAGE_KEY);
     }
   }, [signMessageError, authToken]);
 

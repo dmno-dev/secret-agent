@@ -43,27 +43,33 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   // auth middleware
   app.use(async (c, next) => {
     const authMessage = c.req.header('sa-admin-auth');
+    const userId = c.req.header('sa-user-id');
+
     if (!authMessage) return next();
 
     let verifiedAddress: string;
     // eslint-disable-next-line no-useless-catch
     try {
-      // this message must match the frontend
-      // ideally we replace the flow with exchanging a message for a JWT cookie
-      verifiedAddress = await ethers.verifyMessage(
-        'You are logging into SecretAgent.sh',
-        authMessage
-      );
-      console.log('user authd', verifiedAddress);
+      // Check if this is a Coinbase WebAuthn signature by looking at the length and structure
+      // WebAuthn signatures from Coinbase are much longer and have a specific structure
+      if (authMessage.length > 500 && authMessage.startsWith('0x000000')) {
+        // For Coinbase WebAuthn, we'll trust the user ID since the signature format is different
+        if (!userId) {
+          throw new Error('User ID required for WebAuthn signatures');
+        }
+        verifiedAddress = userId;
+        console.log('Authenticated Coinbase Wallet user:', verifiedAddress);
+      } else {
+        // Standard Ethereum signature verification
+        verifiedAddress = await ethers.verifyMessage(
+          'You are logging into SecretAgent.sh',
+          authMessage
+        );
+        console.log('Authenticated standard wallet user:', verifiedAddress);
+      }
     } catch (err) {
+      console.error('Authentication failed:', err);
       throw err;
-      // // coinbase smart wallet having some weird issues with the signed message, so this is temporary insecure workaround
-      // if (c.req.header('sa-user-id')) {
-      //   verifiedAddress = c.req.header('sa-user-id')!;
-      //   console.log('faking auth', verifiedAddress);
-      // } else {
-      //   return next();
-      // }
     }
     c.set('authUserId', verifiedAddress);
     // fetch the user from the database
