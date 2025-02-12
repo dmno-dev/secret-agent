@@ -19,7 +19,12 @@ export default defineDmnoService({
         'local': () => `https://localhost:${DMNO_CONFIG.PORT}`,
         'production': 'https://secretagent.sh',
       })
-    }
+    },
 
+    PAYMASTER_API_URL: {
+      extends: 'url',
+      required: true,
+      value: 'https://api.developer.coinbase.com/rpc/v1/base-sepolia/9RVvr1pvpoZSbTtdGbW6XJmF6a3HdbtL',
+    },
   },
 });

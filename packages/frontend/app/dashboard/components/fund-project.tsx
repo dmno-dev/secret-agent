@@ -9,6 +9,7 @@ import { baseSepolia } from 'wagmi/chains';
 type TransactionCall = {
   to: `0x${string}`;
   value: bigint;
+  data: `0x${string}`;
 };
 
 export function FundProject({ projectId }: { projectId: string }) {
@@ -56,6 +57,7 @@ export function FundProject({ projectId }: { projectId: string }) {
     {
       to: projectId as `0x${string}`,
       value: amount ? parseEther(amount) : BigInt(0),
+      data: '0x',
     },
   ];
 
@@ -79,7 +81,17 @@ export function FundProject({ projectId }: { projectId: string }) {
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
       >
-        <Transaction chainId={baseSepolia.id} calls={calls} onStatus={handleOnStatus}>
+        <Transaction
+          chainId={baseSepolia.id}
+          calls={calls}
+          onStatus={handleOnStatus}
+          isSponsored
+          capabilities={{
+            paymasterService: {
+              url: DMNO_PUBLIC_CONFIG.PAYMASTER_API_URL,
+            },
+          }}
+        >
           <TransactionButton
             className="px-4 py-2 bg-green-500 text-white rounded font-semibold hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-36"
             text="Fund"
