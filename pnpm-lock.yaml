@@ -233,7 +233,7 @@ importers:
   packages/frontend:
     dependencies:
       '@coinbase/onchainkit':
-        specifier: ^0.36.11
+        specifier: ^0.36.9
         version: 0.36.11(@tanstack/query-core@5.66.0)(@types/react@18.3.18)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.17)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@dmno/nextjs-integration':
         specifier: ^0.0.14
