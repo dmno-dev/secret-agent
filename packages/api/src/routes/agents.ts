@@ -4,9 +4,10 @@ import { z } from 'zod';
 import { Hono } from 'hono';
 import { and, eq } from 'drizzle-orm';
 
-import { projectAgentsTable } from '../db/schema';
+import { projectAgentsTable, projectsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
+import { getWalletEthBalance } from '../lib/eth';
 
 export const agentRoutes = new Hono<HonoEnv>();
 
@@ -114,3 +115,25 @@ agentRoutes.patch(
     return c.json(updatedAgent);
   }
 );
+
+// Add agent-specific route for getting project balance
+agentRoutes.get('/agent/project-balance', async (c) => {
+  const db = c.var.db;
+  const agentAuth = c.req.header('sa-agent-auth');
+
+  if (!agentAuth) {
+    return c.json({ error: 'Missing agent auth header' }, 401);
+  }
+
+  const [projectId] = agentAuth.split('//');
+  const project = await db.query.projectsTable.findFirst({
+    where: eq(projectsTable.id, projectId),
+  });
+
+  if (!project) {
+    return c.json({ error: 'Project not found' }, 404);
+  }
+
+  const balanceInfo = await getWalletEthBalance(project.id);
+  return c.json({ balanceInfo });
+});

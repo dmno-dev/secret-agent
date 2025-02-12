@@ -5,6 +5,7 @@ import { setTimeout } from 'node:timers/promises';
 import { Agent } from 'undici';
 import { normalizeClientRequestArgs } from './lib/msw-utils';
 import { checkUrlInPatternList } from './lib/url-pattern-utils';
+import { DynamicTool } from '@langchain/core/tools';
 
 const SECRETAGENT_API_URL = DMNO_CONFIG.SECRETAGENT_API_URL;
 
@@ -227,6 +228,49 @@ class SecretAgent {
       });
     };
   }
+
+  getLangchainTools() {
+    return [
+      new DynamicTool({
+        name: 'project_balance',
+        description: "Get the current balance of the SecretAgent project's wallet",
+        func: async () => {
+          if (!this.initSettings || !this.projectMetadata) {
+            throw new Error('SecretAgent must be initialized with init() before using tools');
+          }
+          try {
+            const response = await this.api.get('agent/project-balance');
+            const data: { balanceInfo: { eth: string } } = await response.json();
+            return data.balanceInfo.eth;
+          } catch (error) {
+            if (error instanceof HTTPError) {
+              throw new Error(`Failed to fetch project balance: ${error.message}`);
+            }
+            throw error;
+          }
+        },
+      }),
+    ];
+  }
+
+  // Keep the original tools object for direct API access
+  tools = {
+    ProjectBalance: async (): Promise<string> => {
+      if (!this.initSettings || !this.projectMetadata) {
+        throw new Error('SecretAgent must be initialized with init() before using tools');
+      }
+      try {
+        const response = await this.api.get('agent/project-balance');
+        const data: { balanceInfo: { eth: string } } = await response.json();
+        return data.balanceInfo.eth;
+      } catch (error) {
+        if (error instanceof HTTPError) {
+          throw new Error(`Failed to fetch project balance: ${error.message}`);
+        }
+        throw error;
+      }
+    },
+  };
 }
 
 // main export will be a singleton
