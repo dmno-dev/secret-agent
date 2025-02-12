@@ -33,7 +33,7 @@ export function Terminal({ children }: TerminalProps) {
               >
                 {/* Logo! */}
                 <svg
-                  className="w-[80px] text-white group-hover:text-green-400 group-hover:text-inherit dark:text-inherit transition-none"
+                  className="w-[60px] xl:w-[80px] text-white group-hover:text-green-400 group-hover:text-inherit dark:text-inherit transition-none"
                   viewBox="0 0 400 300"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +54,7 @@ export function Terminal({ children }: TerminalProps) {
                     fill="currentColor"
                   />
                 </svg>
-                <h1 className="text-3xl">{siteTitle}</h1>
+                <h1 className="text-xl lg:text-2xl">{siteTitle}</h1>
               </a>
             </div>
           </div>

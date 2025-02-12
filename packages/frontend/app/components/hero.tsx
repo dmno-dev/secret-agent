@@ -20,7 +20,7 @@ export function Hero() {
   return (
     <section className="mb-8">
       {/* <h1 className="text-4xl font-bold mb-4 font-mono">{title}</h1> */}
-      <p className="text-2xl mb-2 h-7 terminal-cursor font-mono text-green-400 font-bold">
+      <p className="text-2xl mb-2 h-32 sm:h-16 md:h-7 terminal-cursor font-mono text-green-400 font-bold">
         {subtitle}
       </p>
       <p className="text-lg dark:text-gray-200 text-gray-500">
