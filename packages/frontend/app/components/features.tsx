@@ -58,10 +58,12 @@ function FeatureItem({
         startDescriptionScramble();
       }}
     >
-      <Icon className="w-6 h-6 mt-1 text-green-400" />
-      <div>
-        <h3 className="font-bold">{scrambledTitle}</h3>
-        <p className="dark:text-gray-300 text-gray-600">{scrambledDescription}</p>
+      <Icon className="w-6 h-6 mt-1 text-green-400 flex-shrink-0" />
+      <div className="flex-1 overflow-hidden">
+        <h3 className="font-bold truncate">{scrambledTitle}</h3>
+        <p className="dark:text-gray-300 text-gray-600 text-sm md:text-base truncate">
+          {scrambledDescription}
+        </p>
       </div>
     </div>
   );
