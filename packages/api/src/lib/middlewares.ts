@@ -6,6 +6,8 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import * as schema from '../db/schema';
 
+const BASE_SEPOLIA_CHAIN_ID = 84532; // Base Sepolia chain ID
+
 export type CloudflareEnvBindings = {
   DB: D1Database;
 };
@@ -18,6 +20,19 @@ export type HonoEnv = {
     authUserId?: string;
   };
 };
+
+const SIGN_IN_MESSAGE = (address: string, nonce: string, timestamp: string, uri: string) =>
+  `You are signing into SecretAgent.sh
+
+By signing this message, you are proving ownership of the wallet address ${address}.
+
+This signature will not trigger a blockchain transaction or cost any gas fees.
+
+Nonce: ${nonce}
+Issued At: ${timestamp}
+Version: 1
+Chain ID: ${BASE_SEPOLIA_CHAIN_ID}
+URI: ${uri}`;
 
 export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   app.use(

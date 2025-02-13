@@ -6,7 +6,7 @@ import { config } from '@/config/wagmi';
 
 import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
 
@@ -139,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         authToken,
         setAuthToken,
+        logout: handleLogout,
         isLoading: signMessageIsPending || !mounted,
       }}
     >
