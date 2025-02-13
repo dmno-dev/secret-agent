@@ -44,33 +44,50 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   app.use(async (c, next) => {
     const authMessage = c.req.header('sa-admin-auth');
     const userId = c.req.header('sa-user-id');
+    const timestamp = c.req.header('sa-auth-timestamp');
+    const nonce = c.req.header('sa-auth-nonce');
+    const uri = c.req.header('sa-auth-uri');
 
     if (!authMessage) return next();
 
     let verifiedAddress: string;
-    // eslint-disable-next-line no-useless-catch
     try {
-      // Check if this is a Coinbase WebAuthn signature by looking at the length and structure
-      // WebAuthn signatures from Coinbase are much longer and have a specific structure
+      // Check if this is a Coinbase WebAuthn signature
       if (authMessage.length > 500 && authMessage.startsWith('0x000000')) {
-        // For Coinbase WebAuthn, we'll trust the user ID since the signature format is different
         if (!userId) {
           throw new Error('User ID required for WebAuthn signatures');
         }
         verifiedAddress = userId;
         console.log('Authenticated Coinbase Wallet user:', verifiedAddress);
       } else {
-        // Standard Ethereum signature verification
-        verifiedAddress = await ethers.verifyMessage(
-          'You are logging into SecretAgent.sh',
-          authMessage
-        );
+        // Standard Ethereum signature verification with enhanced security
+        if (!timestamp || !nonce || !uri || !userId) {
+          throw new Error('Missing authentication parameters');
+        }
+
+        // Verify timestamp is within acceptable range (5 minutes)
+        const messageTime = new Date(timestamp).getTime();
+        const now = Date.now();
+        if (Math.abs(now - messageTime) > 5 * 60 * 1000) {
+          throw new Error('Signature timestamp expired');
+        }
+
+        const message = SIGN_IN_MESSAGE(userId, nonce, timestamp, uri);
+        const recoveredAddress = await ethers.verifyMessage(message, authMessage);
+
+        // Verify recovered address matches claimed address
+        if (recoveredAddress.toLowerCase() !== userId.toLowerCase()) {
+          throw new Error('Invalid signature for claimed address');
+        }
+
+        verifiedAddress = recoveredAddress;
         console.log('Authenticated standard wallet user:', verifiedAddress);
       }
     } catch (err) {
       console.error('Authentication failed:', err);
       throw err;
     }
+
     c.set('authUserId', verifiedAddress);
     // fetch the user from the database
     const db = c.var.db;
