@@ -30,22 +30,29 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-const SIGN_IN_MESSAGE = (address: string, nonce: string) => `You are signing into SecretAgent.sh
+const SIGN_IN_MESSAGE = (address: string, nonce: string) => {
+  const timestamp = new Date().toISOString();
+  const message = `You are signing into SecretAgent.sh
 
 By signing this message, you are proving ownership of the wallet address ${address}.
 
 This signature will not trigger a blockchain transaction or cost any gas fees.
 
 Nonce: ${nonce}
-Issued At: ${new Date().toISOString()}
+Issued At: ${timestamp}
 Version: 1
 Chain ID: ${baseSepolia.id}
 URI: ${DMNO_PUBLIC_CONFIG.SECRETAGENT_WEB_URL}`;
+
+  console.log('Frontend message to sign:', message);
+  return { message, timestamp };
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [authToken, setAuthToken] = useState<string>();
   const [pendingSignIn, setPendingSignIn] = useState(false);
+  const [currentTimestamp, setCurrentTimestamp] = useState<string>();
   const { isConnected: walletIsConnected, address: connectedWalletAddress } = useAccount();
 
   const {
@@ -58,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuthState = useCallback(() => {
     setAuthToken(undefined);
     setPendingSignIn(false);
+    setCurrentTimestamp(undefined);
     window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
     window.localStorage.removeItem(AUTH_ID_LOCALSTORAGE_KEY);
     window.localStorage.removeItem('SA_AUTH_NONCE');
@@ -74,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearAuthState();
         } else {
           setAuthToken(signature);
+          setCurrentTimestamp(timestamp);
         }
       } catch (e) {
         clearAuthState();
@@ -88,26 +97,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const nonce = crypto.randomUUID();
       window.localStorage.setItem('SA_AUTH_NONCE', nonce);
       setPendingSignIn(true);
+
+      const { message, timestamp } = SIGN_IN_MESSAGE(connectedWalletAddress, nonce);
+      setCurrentTimestamp(timestamp);
+
       signMessage({
-        message: SIGN_IN_MESSAGE(connectedWalletAddress, nonce),
+        message,
       });
     }
   }, [walletIsConnected, signMessage, authToken, connectedWalletAddress]);
 
   // Handle successful signature
   useEffect(() => {
-    if (signMessageData && pendingSignIn) {
-      const formattedSignature = signMessageData;
-      const timestamp = new Date().toISOString();
-      const tokenWithTimestamp = `${formattedSignature}|${timestamp}`;
-
-      setAuthToken(formattedSignature);
+    if (signMessageData && pendingSignIn && currentTimestamp) {
+      const tokenWithTimestamp = `${signMessageData}|${currentTimestamp}`;
+      setAuthToken(signMessageData);
       window.localStorage.setItem(AUTH_KEY_LOCALSTORAGE_KEY, tokenWithTimestamp);
       window.localStorage.setItem(AUTH_ID_LOCALSTORAGE_KEY, connectedWalletAddress!);
       setPendingSignIn(false);
       toast.success('Successfully authenticated');
     }
-  }, [signMessageData, connectedWalletAddress, pendingSignIn]);
+  }, [signMessageData, connectedWalletAddress, pendingSignIn, currentTimestamp]);
 
   // Handle signature errors
   useEffect(() => {
