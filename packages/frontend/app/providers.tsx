@@ -111,7 +111,7 @@ function ProvidersInner(props: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <OnchainKitProvider
           apiKey={DMNO_PUBLIC_CONFIG.ONCHAINKIT_API_KEY}
-          projectId={DMNO_PUBLIC_CONFIG.PROJECT_ID}
+          projectId={DMNO_PUBLIC_CONFIG.OCK_PROJECT_ID}
           chain={baseSepolia}
           config={{
             appearance: {

@@ -27,7 +27,7 @@ export default defineDmnoService({
       value: 'https://api.developer.coinbase.com/rpc/v1/base-sepolia/9RVvr1pvpoZSbTtdGbW6XJmF6a3HdbtL',
     },
 
-    PROJECT_ID: {
+    OCK_PROJECT_ID: {
       extends: 'string',
       required: true,
       value: '1b942ee5-6082-4898-bf72-9ace467959b4',
