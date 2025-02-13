@@ -59,14 +59,13 @@ export function ApiCallStats({ projectId }: { projectId: string }) {
   }
 
   // Convert GWEI to ETH for display
-  const costInEth = totals.cost ? parseFloat(formatEther(BigInt(totals.cost))) : 0;
-  // const projectBalanceValue = projectBalance ? parseFloat(formatEther(projectBalance.value)) : 0;
-  // const remainingBalance = projectBalanceValue - costInEth;
+  const costInEth = totals.cost ? parseFloat(formatEther(BigInt(totals.cost), 'gwei')) : 0;
+  const projectBalanceValue = projectBalance ? parseFloat(formatEther(projectBalance.value)) : 0;
+  const remainingBalance = projectBalanceValue - costInEth;
 
-  // Dummy data for visualization
-  const dummyDistributionData = [
-    { name: "Today's Spend", value: 0.05 },
-    { name: 'Remaining Balance', value: 0.95 },
+  const availableBalanceData = [
+    { name: "Today's Spend", value: costInEth },
+    { name: 'Remaining Balance', value: remainingBalance },
   ];
 
   const dummyDailySpendData = [
@@ -98,7 +97,7 @@ export function ApiCallStats({ projectId }: { projectId: string }) {
         </div>
         <div className="col-span-1">
           <DistributionPieChart
-            data={dummyDistributionData}
+            data={availableBalanceData}
             title="Available Balance"
             description="Today's spend vs project balance"
           />

@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
 import { UTCDate } from '@date-fns/utc';
-import { addHours, subHours, addMinutes, format } from 'date-fns';
+import { addHours, subHours, addMinutes, format, subMinutes } from 'date-fns';
 
 import { configItemsTable, ProjectModel, projectsTable, requestsTable } from '../db/schema';
 import { convertGweiToUsd, getWalletEthBalance } from '../lib/eth';
@@ -180,7 +180,7 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
 
   const totals = result[0];
 
-  // Get hourly data for the last 24 hours using SQL date functions
+  // Get hourly data for the last hour
   const hourlyQuery = await db
     .select({
       cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
@@ -198,7 +198,8 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
     .groupBy(sql`strftime('%H:%M', timestamp)`)
     .orderBy(sql`strftime('%H:%M', timestamp)`);
 
-  let t = addMinutes(new UTCDate(), -60);
+  const now = new UTCDate();
+  let t = subMinutes(now, 59); // Start from 59 minutes ago to include current minute
   const recentData: Array<{
     label: string;
     cost: number;
@@ -207,7 +208,7 @@ projectRoutes.get('/projects/:projectId/stats', projectIdMiddleware, async (c) =
     totalTokens: number;
   }> = [];
   for (let i = 0; i < 60; i++) {
-    const timeStr = format(t, 'KK:mm');
+    const timeStr = format(t, 'HH:mm'); // Use 24-hour format
     const data = hourlyQuery.find((q) => q.time === timeStr);
     recentData.push({
       label: timeStr,

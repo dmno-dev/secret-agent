@@ -24,6 +24,7 @@
     }
   },
   "dependencies": {
+    "@langchain/core": "^0.3.40",
     "ky": "^1.7.4",
     "undici": "^7.3.0"
   },
