@@ -234,21 +234,7 @@ class SecretAgent {
       new DynamicTool({
         name: 'project_balance',
         description: "Get the current balance of the SecretAgent project's wallet",
-        func: async () => {
-          if (!this.initSettings || !this.projectMetadata) {
-            throw new Error('SecretAgent must be initialized with init() before using tools');
-          }
-          try {
-            const response = await this.api.get('agent/project-balance');
-            const data: { balanceInfo: { eth: string } } = await response.json();
-            return data.balanceInfo.eth;
-          } catch (error) {
-            if (error instanceof HTTPError) {
-              throw new Error(`Failed to fetch project balance: ${error.message}`);
-            }
-            throw error;
-          }
-        },
+        func: async () => this.tools.ProjectBalance(),
       }),
     ];
   }
