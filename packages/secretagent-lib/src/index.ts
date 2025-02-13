@@ -247,8 +247,8 @@ class SecretAgent {
       }
       try {
         const response = await this.api.get('agent/project-balance');
-        const data: { balanceInfo: { eth: string } } = await response.json();
-        return data.balanceInfo.eth;
+        const data: { balanceInfo: { eth: number } } = await response.json();
+        return `${data.balanceInfo.eth} ETH`;
       } catch (error) {
         if (error instanceof HTTPError) {
           throw new Error(`Failed to fetch project balance: ${error.message}`);

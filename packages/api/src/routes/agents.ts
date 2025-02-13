@@ -2,9 +2,9 @@ import { createMiddleware } from 'hono/factory';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { Hono } from 'hono';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql, sum } from 'drizzle-orm';
 
-import { projectAgentsTable, projectsTable } from '../db/schema';
+import { projectAgentsTable, projectsTable, requestsTable } from '../db/schema';
 import { HonoEnv } from '../lib/middlewares';
 import { projectIdMiddleware } from './project';
 import { getWalletEthBalance } from '../lib/eth';
@@ -134,6 +134,20 @@ agentRoutes.get('/agent/project-balance', async (c) => {
     return c.json({ error: 'Project not found' }, 404);
   }
 
+  // Get current day's usage in gwei
+  const result = await db
+    .select({
+      cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
+    })
+    .from(requestsTable)
+    .where(and(eq(requestsTable.projectId, project.id), sql`DATE(timestamp) = CURRENT_DATE`));
+
+  const dailyUsageGwei = result[0]?.cost || 0;
   const balanceInfo = await getWalletEthBalance(project.id);
-  return c.json({ balanceInfo });
+
+  return c.json({
+    balanceInfo: {
+      eth: balanceInfo.eth - dailyUsageGwei / 1e9, // Return effective balance
+    },
+  });
 });
