@@ -1,6 +1,5 @@
 'use client';
 
-import { AUTH_ID_LOCALSTORAGE_KEY, AUTH_KEY_LOCALSTORAGE_KEY } from '@/lib/api';
 import { Address, EthBalance, Identity } from '@coinbase/onchainkit/identity';
 import {
   ConnectWallet,
@@ -14,17 +13,15 @@ import { useAccount } from 'wagmi';
 import { useAuth } from '../providers';
 
 export function WalletButton() {
-  const { isConnected } = useAccount();
-  const { setAuthToken, authToken } = useAuth();
+  const { isConnected, isDisconnected } = useAccount();
+  const { authToken, logout } = useAuth();
 
-  // Listen for disconnect events and clear auth token
+  // Handle wallet disconnection
   useEffect(() => {
-    if (!isConnected && authToken) {
-      setAuthToken(undefined);
-      window.localStorage.removeItem(AUTH_KEY_LOCALSTORAGE_KEY);
-      window.localStorage.removeItem(AUTH_ID_LOCALSTORAGE_KEY);
+    if (isDisconnected && authToken) {
+      logout();
     }
-  }, [isConnected, authToken, setAuthToken]);
+  }, [isDisconnected, authToken, logout]);
 
   if (!isConnected) {
     return null;
