@@ -12,6 +12,9 @@ const connectors = [
   metaMask(),
   coinbaseWallet({
     appName: 'SecretAgent',
+    appLogoUrl: 'https://secretagent.sh/icon.svg',
+    darkMode: true,
+    preference: 'smartWalletOnly',
   }),
 ];
 
