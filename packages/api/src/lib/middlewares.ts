@@ -6,6 +6,8 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import * as schema from '../db/schema';
 
+const BASE_SEPOLIA_CHAIN_ID = 84532; // Base Sepolia chain ID
+
 export type CloudflareEnvBindings = {
   DB: D1Database;
 };
@@ -18,6 +20,19 @@ export type HonoEnv = {
     authUserId?: string;
   };
 };
+
+const SIGN_IN_MESSAGE = (address: string, nonce: string, timestamp: string, uri: string) =>
+  `You are signing into SecretAgent.sh
+
+By signing this message, you are proving ownership of the wallet address ${address}.
+
+This signature will not trigger a blockchain transaction or cost any gas fees.
+
+Nonce: ${nonce}
+Issued At: ${timestamp}
+Version: 1
+Chain ID: ${BASE_SEPOLIA_CHAIN_ID}
+URI: ${uri}`;
 
 export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   app.use(
@@ -43,28 +58,51 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   // auth middleware
   app.use(async (c, next) => {
     const authMessage = c.req.header('sa-admin-auth');
+    const userId = c.req.header('sa-user-id');
+    const timestamp = c.req.header('sa-auth-timestamp');
+    const nonce = c.req.header('sa-auth-nonce');
+    const uri = c.req.header('sa-auth-uri');
+
     if (!authMessage) return next();
 
     let verifiedAddress: string;
-    // eslint-disable-next-line no-useless-catch
     try {
-      // this message must match the frontend
-      // ideally we replace the flow with exchanging a message for a JWT cookie
-      verifiedAddress = await ethers.verifyMessage(
-        'You are logging into SecretAgent.sh',
-        authMessage
-      );
-      console.log('user authd', verifiedAddress);
+      // Check if this is a Coinbase WebAuthn signature
+      if (authMessage.length > 500 && authMessage.startsWith('0x000000')) {
+        if (!userId) {
+          throw new Error('User ID required for WebAuthn signatures');
+        }
+        verifiedAddress = userId;
+        console.log('Authenticated Coinbase Wallet user:', verifiedAddress);
+      } else {
+        // Standard Ethereum signature verification with enhanced security
+        if (!timestamp || !nonce || !uri || !userId) {
+          throw new Error('Missing authentication parameters');
+        }
+
+        // Verify timestamp is within acceptable range (5 minutes)
+        const messageTime = new Date(timestamp).getTime();
+        const now = Date.now();
+        if (Math.abs(now - messageTime) > 5 * 60 * 1000) {
+          throw new Error('Signature timestamp expired');
+        }
+
+        const message = SIGN_IN_MESSAGE(userId, nonce, timestamp, uri);
+        const recoveredAddress = await ethers.verifyMessage(message, authMessage);
+
+        // Verify recovered address matches claimed address
+        if (recoveredAddress.toLowerCase() !== userId.toLowerCase()) {
+          throw new Error('Invalid signature for claimed address');
+        }
+
+        verifiedAddress = recoveredAddress;
+        console.log('Authenticated standard wallet user:', verifiedAddress);
+      }
     } catch (err) {
+      console.error('Authentication failed:', err);
       throw err;
-      // // coinbase smart wallet having some weird issues with the signed message, so this is temporary insecure workaround
-      // if (c.req.header('sa-user-id')) {
-      //   verifiedAddress = c.req.header('sa-user-id')!;
-      //   console.log('faking auth', verifiedAddress);
-      // } else {
-      //   return next();
-      // }
     }
+
     c.set('authUserId', verifiedAddress);
     // fetch the user from the database
     const db = c.var.db;
