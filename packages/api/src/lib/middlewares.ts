@@ -1,12 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
-import { ethers } from 'ethers';
 import { Context, Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
+import { createPublicClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
 import * as schema from '../db/schema';
-
-const BASE_SEPOLIA_CHAIN_ID = 84532; // Base Sepolia chain ID
 
 export type CloudflareEnvBindings = {
   DB: D1Database;
@@ -31,8 +30,14 @@ This signature will not trigger a blockchain transaction or cost any gas fees.
 Nonce: ${nonce}
 Issued At: ${timestamp}
 Version: 1
-Chain ID: ${BASE_SEPOLIA_CHAIN_ID}
+Chain ID: ${baseSepolia.id}
 URI: ${uri}`;
+
+// Initialize Viem public client
+const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(),
+});
 
 export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   app.use(
@@ -67,37 +72,38 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
 
     let verifiedAddress: string;
     try {
-      // Check if this is a Coinbase WebAuthn signature
-      if (authMessage.length > 500 && authMessage.startsWith('0x000000')) {
-        if (!userId) {
-          throw new Error('User ID required for WebAuthn signatures');
-        }
-        verifiedAddress = userId;
-        console.log('Authenticated Coinbase Wallet user:', verifiedAddress);
-      } else {
-        // Standard Ethereum signature verification with enhanced security
-        if (!timestamp || !nonce || !uri || !userId) {
-          throw new Error('Missing authentication parameters');
-        }
-
-        // Verify timestamp is within acceptable range (5 minutes)
-        const messageTime = new Date(timestamp).getTime();
-        const now = Date.now();
-        if (Math.abs(now - messageTime) > 5 * 60 * 1000) {
-          throw new Error('Signature timestamp expired');
-        }
-
-        const message = SIGN_IN_MESSAGE(userId, nonce, timestamp, uri);
-        const recoveredAddress = await ethers.verifyMessage(message, authMessage);
-
-        // Verify recovered address matches claimed address
-        if (recoveredAddress.toLowerCase() !== userId.toLowerCase()) {
-          throw new Error('Invalid signature for claimed address');
-        }
-
-        verifiedAddress = recoveredAddress;
-        console.log('Authenticated standard wallet user:', verifiedAddress);
+      // Standard signature verification with enhanced security
+      if (!timestamp || !nonce || !uri || !userId) {
+        throw new Error('Missing authentication parameters');
       }
+
+      // Verify timestamp is within acceptable range (5 minutes)
+      const messageTime = new Date(timestamp).getTime();
+      const now = Date.now();
+      if (Math.abs(now - messageTime) > 5 * 60 * 1000) {
+        throw new Error('Signature timestamp expired');
+      }
+
+      const message = SIGN_IN_MESSAGE(userId, nonce, timestamp, uri);
+
+      try {
+        // Use Viem's verifyMessage which supports both EOA and smart contract wallets
+        const isValid = await publicClient.verifyMessage({
+          address: userId as `0x${string}`,
+          message,
+          signature: authMessage as `0x${string}`,
+        });
+
+        if (!isValid) {
+          throw new Error('Signature verification failed');
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
+        console.error('Verification error details:', error);
+        throw new Error(`Signature verification failed: ${errorMessage}`);
+      }
+
+      verifiedAddress = userId;
     } catch (err) {
       console.error('Authentication failed:', err);
       throw err;
