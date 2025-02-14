@@ -53,6 +53,20 @@ export default defineDmnoService({
       sensitive: true,
       value: encryptedVault.item(),
     },
+
+    GEMINI_API_KEY: {
+      sensitive: true,
+      value: encryptedVault.item(),
+    },
+    GOOGLE_SERVICE_ACCOUNT_EMAIL: {
+      value: 'secret-agent-llm-caller@dmno-signup-api.iam.gserviceaccount.com',
+    },
+    GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: {
+      sensitive: true,
+      value: encryptedVault.item(),
+      coerce: (val) => val.replaceAll('\\n', '\n'),
+    },
+
     
     CDP_CLIENT_API_KEY: {
       externalDocs: {

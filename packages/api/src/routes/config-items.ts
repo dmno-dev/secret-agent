@@ -15,7 +15,13 @@ const configItemUpdateSchema = z.object({
   itemType: z.enum(['llm', 'proxy', 'static']).default('llm'),
   // TODO: refine based on itemType
   value: z.string().optional(),
-  llmSettings: z.object({}).optional(),
+  llmSettings: z
+    .object({
+      model: z.string(),
+      provider: z.string(),
+      temperature: z.number(),
+    })
+    .optional(),
   proxySettings: z
     .object({
       matchUrl: z.array(z.string()),

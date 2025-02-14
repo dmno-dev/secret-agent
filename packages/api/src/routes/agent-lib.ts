@@ -89,7 +89,6 @@ agentLibRoutes.use(async (c, next) => {
   const projectWalletBalanceInfo = await getWalletEthBalance(project.id);
   c.set('projectWalletBalanceInfo', projectWalletBalanceInfo);
 
-  const lastMidnight = new Date(new Date().toISOString().substring(0, 10));
   const usageResult = await db
     .select({
       cost: sum(sql`costDetails->'ethGwei'`).mapWith(Number),
@@ -188,13 +187,28 @@ agentLibRoutes.post('/proxy', async (c) => {
   if (!originalUrl) {
     return c.json({ error: 'Missing required header `sa-original-url`' }, 400);
   }
+  let transformedUrl = originalUrl;
 
   let sharedLlmConfigItem: ConfigItemModel | undefined;
   const usedProxyKeys = new Set<string>();
 
+  let headersObj = c.req.header();
+  const headersJsonStr = JSON.stringify(headersObj);
+
+  let reqBodyObj: Record<string, any> = {};
+  let reqBodyBlob: Blob | undefined;
+  let sendBody = false;
+  if (headersObj['content-type'] === 'application/json') {
+    // example showing changing the request config (model, etc)
+    reqBodyObj = await c.req.json();
+    sendBody = true;
+  } else if (!['get', 'head', 'options'].includes(originalMethod)) {
+    reqBodyBlob = await c.req.blob();
+    sendBody = true;
+  }
+
   // replace placeholder secrets with actual values
-  const headers = c.req.header();
-  let headersJsonStr = JSON.stringify(headers);
+
   for (const configItem of configItems) {
     if (configItem.itemType === 'llm') {
       if (checkUrlInPatternList(originalUrl, ['api.openai.com'])) {
@@ -206,7 +220,54 @@ agentLibRoutes.post('/proxy', async (c) => {
           sharedLlmConfigItem = configItem;
           // TODO: check settings on this key, allow switching providers, model, etc
 
-          headersJsonStr = headersJsonStr.replaceAll(key, DMNO_CONFIG.MASTER_OPENAI_API_KEY);
+          if (configItem.settings?.provider === 'openai') {
+            headersObj['authorization'] = `Bearer ${DMNO_CONFIG.OPENAI_API_KEY}`;
+            reqBodyObj['model'] = configItem.settings?.model;
+            reqBodyObj['temperature'] = configItem.settings?.temperature;
+          } else if (configItem.settings?.provider === 'google') {
+            transformedUrl =
+              'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+            headersObj['authorization'] = `Bearer ${DMNO_CONFIG.GEMINI_API_KEY}`;
+            reqBodyObj['model'] = configItem.settings?.model;
+            reqBodyObj['temperature'] = configItem.settings?.temperature;
+
+            delete reqBodyObj['frequency_penalty'];
+
+            // gemini's "OpenAI compatible" tools are not happy with the agentkit tools :(
+
+            reqBodyObj.tools?.forEach((tool: any) => {
+              tool.function.strict = false;
+              // fix any missing tool property types
+              for (const pkey of Object.keys(tool.function?.parameters?.properties || {})) {
+                if (!tool.function.parameters.properties[pkey].type) {
+                  console.log('fixing tool property type!');
+                  tool.function.parameters.properties[pkey].type ||= 'string';
+                } else if (tool.function.parameters.properties[pkey].type === 'object') {
+                  if (
+                    !Object.entries(tool.function.parameters.properties[pkey].properties || [])
+                      .length
+                  ) {
+                    delete tool.function.parameters.properties[pkey];
+                    if (tool.function.parameters.required) {
+                      tool.function.parameters.required = tool.function.parameters.required.filter(
+                        (k: string) => k !== pkey
+                      );
+                    }
+                  }
+                }
+              }
+
+              // remove empty object params
+              if (
+                tool.parameters?.type === 'object' &&
+                !Object.entries(tool.parameters?.properties).length
+              ) {
+                delete tool.parameters;
+              }
+            });
+          } else {
+            throw new Error(`Unsupported provider: ${configItem.settings?.provider}`);
+          }
         }
       }
     } else if (configItem.itemType === 'proxy') {
@@ -215,31 +276,18 @@ agentLibRoutes.post('/proxy', async (c) => {
         if (headersJsonStr.includes(key)) {
           usedProxyKeys.add(configItem.key);
           if (!configItem.value) throw new Error(`config item "${key}" is missing value`);
-          headersJsonStr = headersJsonStr.replaceAll(key, configItem.value);
+          headersObj = JSON.parse(JSON.stringify(headersObj).replaceAll(key, configItem.value));
         }
       }
     }
   }
 
-  const headersJson = JSON.parse(headersJsonStr);
-  delete headersJson['sa-agent-auth'];
-  delete headersJson['sa-original-url'];
-  delete headersJson['sa-original-method'];
-  delete headersJson['host'];
-  delete headersJson['cf-connecting-ip'];
-
-  let bodyToSend: string | Blob | undefined;
-  let reqBodyObj: Record<string, any> | undefined;
-  if (headersJson['content-type'] === 'application/json' && sharedLlmConfigItem) {
-    // example showing changing the request config (model, etc)
-    reqBodyObj = await c.req.json();
-
-    // TODO: swap params, adjust content length?
-
-    bodyToSend = JSON.stringify(reqBodyObj);
-  } else if (originalMethod !== 'get' && originalMethod !== 'head') {
-    bodyToSend = await c.req.blob();
-  }
+  delete headersObj['sa-agent-auth'];
+  delete headersObj['sa-original-url'];
+  delete headersObj['sa-original-method'];
+  delete headersObj['host'];
+  delete headersObj['cf-connecting-ip'];
+  delete headersObj['content-length'];
 
   // TODO: estimate cost based on input and model
   if (c.var.projectEffectiveBalanceCents < 200) {
@@ -307,12 +355,19 @@ agentLibRoutes.post('/proxy', async (c) => {
   let costUsdCents = PROXY_COST;
 
   try {
-    // make fetch call to original url
-    const proxiedReqResult = await fetch(originalUrl, {
+    console.log('Making request', {
+      url: transformedUrl,
       method: originalMethod,
-      headers: headersJson,
-      ...(bodyToSend && { body: bodyToSend }),
+      headers: headersObj,
+      // body: reqBodyBlob ? '[blob]' : JSON.stringify(reqBodyObj),
     });
+    // make fetch call to original url
+    const proxiedReqResult = await fetch(transformedUrl, {
+      method: originalMethod,
+      headers: headersObj,
+      ...(sendBody && { body: reqBodyBlob || JSON.stringify(reqBodyObj) }),
+    });
+
     const resBodyText = await proxiedReqResult.text();
 
     const resultContentType = proxiedReqResult.headers.get('content-type');

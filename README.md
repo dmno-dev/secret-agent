@@ -1,6 +1,6 @@
 # SecretAgent.sh 🔐🕶️🤖 
 
-**Pay-as-you-go LLM keys and secret management tools for AI agents - powered by [dmno.dev](dmno.dev)**
+**Pay-as-you-go LLM keys and secret management tools for AI agents - by [dmno.dev](https://dmno.dev)**
 
 ![SecretAgent.sh](/packages/frontend/assets/hero.jpg)
 

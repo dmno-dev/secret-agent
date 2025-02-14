@@ -33,14 +33,19 @@ export default defineDmnoService({
     }),
 
 
-    MASTER_OPENAI_API_KEY: {
-      extends: pick('root', 'OPENAI_API_KEY'),
+    OPENAI_API_KEY: {
+      extends: pick(),
       required: true,
     },
-    MASTER_LANGSMITH_API_KEY: {
-      extends: pick('root', 'LANGSMITH_API_KEY'),
+    LANGSMITH_API_KEY: {
+      extends: pick(),
       required: true,
     },
+    GEMINI_API_KEY: {
+      extends: pick(),
+      required: true,
+    },
+    
     PRIVY_APP_ID: {
       extends: pick(),
       required: true,

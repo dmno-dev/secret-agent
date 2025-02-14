@@ -29,7 +29,11 @@ export type ConfigItem = BaseConfigItem &
   (
     | {
         itemType: 'llm';
-        llmSettings: Record<string, never>;
+        llmSettings: {
+          model: string;
+          provider: string;
+          temperature: number;
+        };
       }
     | {
         itemType: 'proxy';
@@ -54,7 +58,11 @@ export type ConfigItemCreate = BaseConfigItemCreate &
   (
     | {
         itemType: 'llm';
-        llmSettings: Record<string, never>;
+        llmSettings: {
+          model: string;
+          provider: string;
+          temperature: number;
+        };
       }
     | {
         itemType: 'proxy';

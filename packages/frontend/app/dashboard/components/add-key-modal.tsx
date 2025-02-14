@@ -11,6 +11,9 @@ export type NewKeyFormData = {
   value?: string;
   matchUrl?: string[];
   matchUrlInput?: string;
+  llmModel?: string;
+  llmProvider?: string;
+  llmTemp?: number;
 };
 
 export interface AddKeyModalProps {
@@ -19,11 +22,35 @@ export interface AddKeyModalProps {
   editingItem?: ConfigItem | null;
 }
 
+const LLM_MODEL_OPTIONS = {
+  openai: [
+    'gpt-4o',
+    'gpt-4o-mini',
+    // 'o1',
+    // 'o1-mini',
+    // 'o3-mini',
+    // 'o1-preview',
+    // 'gpt-4o-realtime-preview',
+    // 'gpt-4o-mini-realtime-preview',
+    // 'gpt-4o-audio-preview',
+  ],
+  google: [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite-preview-02-05',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
+    // 'aqa',
+  ],
+};
+
 export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps) {
   const [formData, setFormData] = useState<NewKeyFormData>({
     name: '',
     type: 'llm',
     matchUrlInput: '',
+    llmProvider: 'openai',
+    llmModel: 'gpt-4o-mini',
+    llmTemp: 0.5,
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,6 +64,9 @@ export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps
           editingItem.itemType === 'proxy'
             ? editingItem.proxySettings?.matchUrl?.join(', ') || ''
             : '',
+        llmProvider: editingItem.itemType === 'llm' ? editingItem.llmSettings?.provider : 'openai',
+        llmModel: editingItem.itemType === 'llm' ? editingItem.llmSettings?.model : 'gpt-4o-mini',
+        llmTemp: editingItem.itemType === 'llm' ? editingItem.llmSettings?.temperature : 0.5,
       });
     }
   }, [editingItem]);
@@ -92,7 +122,7 @@ export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps
               value={formData.name}
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
-              placeholder="e.g., OPENAI_API_KEY"
+              placeholder="e.g., LLM_API_KEY"
               disabled={!!editingItem}
             />
           </div>
@@ -147,6 +177,65 @@ export function AddKeyModal({ onClose, onSubmit, editingItem }: AddKeyModalProps
                   : 'Static value, fetched by agent'}
             </p>
           </div>
+
+          {formData.type === 'llm' && (
+            <div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
+                    LLM Provider
+                  </label>
+                  <select
+                    value={formData.llmProvider}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, llmProvider: e.target.value }))
+                    }
+                    className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
+                  >
+                    <option value="openai">OpenAI</option>
+                    <option value="google">Google</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
+                    Model
+                  </label>
+                  <select
+                    value={formData.llmModel}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, llmModel: e.target.value }))}
+                    className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
+                  >
+                    {formData.llmProvider &&
+                      LLM_MODEL_OPTIONS[formData.llmProvider as keyof typeof LLM_MODEL_OPTIONS].map(
+                        (model) => (
+                          <option key={model} value={model}>
+                            {model}
+                          </option>
+                        )
+                      )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-green-400 mb-1">
+                    Temperature
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={formData.llmTemp}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, llmTemp: parseFloat(e.target.value) }))
+                    }
+                    className="w-full p-2 border border-gray-300 dark:border-green-400 rounded bg-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {(formData.type === 'proxy' || formData.type === 'static') && (
             <div>
