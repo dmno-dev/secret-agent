@@ -20,20 +20,6 @@ export type HonoEnv = {
   };
 };
 
-const SIGN_IN_MESSAGE = (address: string, nonce: string, timestamp: string, uri: string) =>
-  `You are signing into SecretAgent.sh
-
-By signing this message, you are proving ownership of the wallet address ${address}.
-
-This signature will not trigger a blockchain transaction or cost any gas fees.
-
-Nonce: ${nonce}
-Issued At: ${timestamp}
-Version: 1
-Chain ID: ${baseSepolia.id}
-URI: ${uri}`;
-
-// Initialize Viem public client
 const publicClient = createPublicClient({
   chain: baseSepolia,
   transport: http(),
@@ -64,56 +50,34 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
   app.use(async (c, next) => {
     const authMessage = c.req.header('sa-admin-auth');
     const userId = c.req.header('sa-user-id');
-    const timestamp = c.req.header('sa-auth-timestamp');
-    const nonce = c.req.header('sa-auth-nonce');
-    const uri = c.req.header('sa-auth-uri');
-
-    if (!authMessage) return next();
+    if (!authMessage || !userId) return next();
 
     let verifiedAddress: string;
+    // eslint-disable-next-line no-useless-catch
     try {
-      // Standard signature verification with enhanced security
-      if (!timestamp || !nonce || !uri || !userId) {
-        throw new Error('Missing authentication parameters');
-      }
-
-      // Verify timestamp is within acceptable range (5 minutes)
-      const messageTime = new Date(timestamp).getTime();
-      const now = Date.now();
-      if (Math.abs(now - messageTime) > 5 * 60 * 1000) {
-        throw new Error('Signature timestamp expired');
-      }
-
-      const message = SIGN_IN_MESSAGE(userId, nonce, timestamp, uri);
-
-      try {
-        // Use Viem's verifyMessage which supports both EOA and smart contract wallets
-        const isValid = await publicClient.verifyMessage({
-          address: userId as `0x${string}`,
-          message,
-          signature: authMessage as `0x${string}`,
-        });
-
-        if (!isValid) {
-          throw new Error('Signature verification failed');
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
-        console.error('Verification error details:', error);
-        throw new Error(`Signature verification failed: ${errorMessage}`);
-      }
-
-      verifiedAddress = userId;
+      // this message must match the frontend
+      // ideally we replace the flow with exchanging a message for a JWT cookie
+      const isVerified = await publicClient.verifyMessage({
+        message: 'You are logging into SecretAgent.sh',
+        signature: authMessage as `0x${string}`,
+        address: userId as `0x${string}`,
+      });
+      console.log('user authd', isVerified);
     } catch (err) {
-      console.error('Authentication failed:', err);
       throw err;
+      // // coinbase smart wallet having some weird issues with the signed message, so this is temporary insecure workaround
+      // if (c.req.header('sa-user-id')) {
+      //   verifiedAddress = c.req.header('sa-user-id')!;
+      //   console.log('faking auth', verifiedAddress);
+      // } else {
+      //   return next();
+      // }
     }
-
-    c.set('authUserId', verifiedAddress);
+    c.set('authUserId', userId);
     // fetch the user from the database
     const db = c.var.db;
     const authUser = await db.query.usersTable.findFirst({
-      where: eq(schema.usersTable.id, verifiedAddress),
+      where: eq(schema.usersTable.id, userId),
     });
 
     if (authUser) {
@@ -125,7 +89,7 @@ export function initCommonMiddlewares(app: Hono<HonoEnv>) {
       const newUser = await db
         .insert(schema.usersTable)
         .values({
-          id: verifiedAddress,
+          id: userId,
         })
         .returning();
       c.set('authUser', newUser);
