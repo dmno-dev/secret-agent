@@ -2,6 +2,8 @@
 
 **Pay-as-you-go LLM keys and secret management tools for AI agents - powered by [secretagent.sh](https://secretagent.sh)**
 
+> Brought to you by [dmno.dev](dmno.dev)
+
 - Centralized secret management with integrated access logs
 - Secrets inserted by proxy so agent never has direct access
 - Agent auth and payments powered by crypto wallets
