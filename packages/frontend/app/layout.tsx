@@ -6,6 +6,7 @@ import { type ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import './globals.css';
 import { Providers } from './providers';
+import { Footer } from './components/footer';
 
 const font = Space_Grotesk({
   subsets: ['latin'],
@@ -32,7 +33,10 @@ export default function RootLayout(props: { children: ReactNode }) {
       <link rel="icon" href="/icon.svg" sizes="any" />
       <link rel="mask-icon" href="/icon-mask.svg" color="#000000" />
       <body className={`${font.className}`}>
-        <Providers>{props.children}</Providers>
+        <Providers>
+          {props.children}
+          <Footer />
+        </Providers>
         <Toaster theme="system" position="top-right" closeButton richColors />
       </body>
     </html>
