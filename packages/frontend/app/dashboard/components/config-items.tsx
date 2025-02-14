@@ -38,7 +38,11 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
           configItem = {
             key: data.name,
             itemType: 'llm' as const,
-            llmSettings: {},
+            llmSettings: {
+              model: data.llmModel || 'openai',
+              provider: data.llmProvider || 'gpt-4o-mini',
+              temperature: data.llmTemp || 0.5,
+            },
           };
           break;
         case 'proxy':
@@ -70,6 +74,7 @@ export function ConfigItems({ configItems, projectId }: ConfigItemsProps) {
           proxyConfig.proxySettings.matchUrl = editingItem.proxySettings?.matchUrl || [];
           configItem = proxyConfig;
         }
+
         await updateConfigItem.mutateAsync({ key: editingItem.key, data: configItem });
         toast.success('Config item updated successfully');
       } else {

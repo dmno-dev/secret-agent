@@ -48,6 +48,11 @@ projectRoutes.post(
         projectId: newProject.id,
         key: 'LLM_API_KEY',
         itemType: 'llm',
+        settings: {
+          provider: 'openai',
+          model: 'gpt-4o-mini',
+          temperature: 0.5,
+        },
       })
       .returning();
 
