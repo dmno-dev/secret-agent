@@ -78,7 +78,6 @@ export async function pullFundsFromPrivyServerWallet(privyWalletId: string, amou
     console.log('pulling funds from privy server wallet', privyWalletId, amountGwei);
     console.log('billing wallet address', DMNO_CONFIG.BILLING_WALLET_ADDRESS);
     const value = BigInt(amountGwei) * BigInt(GWEI_TO_WEI);
-    console.log('value', value);
 
     const response = await privy.walletApi.ethereum.sendTransaction({
       walletId: privyWalletId,
@@ -90,7 +89,6 @@ export async function pullFundsFromPrivyServerWallet(privyWalletId: string, amou
       },
     });
 
-    console.log('Transaction response:', response);
     return response;
   } catch (err) {
     console.error('Error pulling funds from privy server wallet:', err);
