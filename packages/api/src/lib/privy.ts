@@ -1,6 +1,6 @@
 import { PrivyClient } from '@privy-io/server-auth';
 import ky, { HTTPError } from 'ky';
-import { GWEI_TO_WEI } from './eth';
+import { GWEI_TO_WEI, SUPPORTED_CHAIN_IDS } from './eth';
 
 const privy = new PrivyClient(DMNO_CONFIG.PRIVY_APP_ID, DMNO_CONFIG.PRIVY_APP_SECRET);
 
@@ -81,11 +81,11 @@ export async function pullFundsFromPrivyServerWallet(privyWalletId: string, amou
 
     const response = await privy.walletApi.ethereum.sendTransaction({
       walletId: privyWalletId,
-      caip2: 'eip155:84532', // base-sepolia chain id
+      caip2: `eip155:${SUPPORTED_CHAIN_IDS['base-sepolia']}`,
       transaction: {
         to: DMNO_CONFIG.BILLING_WALLET_ADDRESS as `0x${string}`,
         value: Number(value), // Convert BigInt to number as per example
-        chainId: 84532,
+        chainId: SUPPORTED_CHAIN_IDS['base-sepolia'],
       },
     });
 
