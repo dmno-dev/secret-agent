@@ -184,8 +184,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2(hono@4.7.0)(zod@3.24.1)
       '@privy-io/server-auth':
-        specifier: ^1.18.5
-        version: 1.18.7(bufferutil@4.0.9)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1))
+        specifier: ^1.18.8
+        version: 1.18.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1))
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2213,8 +2213,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@privy-io/server-auth@1.18.7':
-    resolution: {integrity: sha512-We/xwBiJvS3NYObPsngRqLo9qnaIh9jRED5i85xC4dGu5DiDbgenMv3nsSaVCYbzN46Nqbt3J0ajRPuHeqaFJQ==}
+  '@privy-io/server-auth@1.18.8':
+    resolution: {integrity: sha512-bdpHZt3ThWrx0GEyrpSywROuEsMTOO6UywWlhtsgULiA6qANfPnPnERh2tcMG6QJL3SB39n4EoBpPLw98VN3YA==}
     peerDependencies:
       viem: ^2
     peerDependenciesMeta:
@@ -8150,7 +8150,7 @@ snapshots:
     dependencies:
       playwright: 1.50.1
 
-  '@privy-io/server-auth@1.18.7(bufferutil@4.0.9)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1))':
+  '@privy-io/server-auth@1.18.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1))':
     dependencies:
       '@noble/curves': 1.8.1
       '@noble/hashes': 1.7.1

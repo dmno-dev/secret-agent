@@ -84,7 +84,7 @@ export async function pullFundsFromPrivyServerWallet(privyWalletId: string, amou
       walletId: privyWalletId,
       caip2: 'eip155:84532', // base-sepolia chain id
       transaction: {
-        to: DMNO_CONFIG.BILLING_WALLET_ADDRESS,
+        to: DMNO_CONFIG.BILLING_WALLET_ADDRESS as `0x${string}`,
         value: Number(value), // Convert BigInt to number as per example
         chainId: 84532,
       },
