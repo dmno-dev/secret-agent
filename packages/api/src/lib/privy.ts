@@ -74,23 +74,27 @@ export async function addDefaultPolicyToPrivyServerWallet(privyWalletId: string)
 }
 
 export async function pullFundsFromPrivyServerWallet(privyWalletId: string, amountGwei: number) {
-  // ! NOTE - server wallets only work on ETH mainnet at the moment, so we cannot actually charge it!
-  return {
-    hash: '0xabc123',
-  };
+  try {
+    console.log('pulling funds from privy server wallet', privyWalletId, amountGwei);
+    console.log('billing wallet address', DMNO_CONFIG.BILLING_WALLET_ADDRESS);
+    const value = BigInt(amountGwei) * BigInt(GWEI_TO_WEI);
 
-  // TODO: enable this...
-  const txn = await privy.walletApi.ethereum.sendTransaction({
-    walletId: privyWalletId,
-    caip2: 'eip155:8453',
-    transaction: {
-      to: DMNO_CONFIG.BILLING_WALLET_ADDRESS,
-      // TODO: not 100% sure if amount is supposed to be wei or gwei?
-      value: BigInt(amountGwei) * BigInt(GWEI_TO_WEI),
-      // doesnt work at the moment
-      chainId: SUPPORTED_CHAIN_IDS['base-sepolia'],
-    },
-  });
+    const response = await privy.walletApi.ethereum.sendTransaction({
+      walletId: privyWalletId,
+      caip2: `eip155:${SUPPORTED_CHAIN_IDS['base-sepolia']}`,
+      transaction: {
+        to: DMNO_CONFIG.BILLING_WALLET_ADDRESS as `0x${string}`,
+        value: Number(value), // Convert BigInt to number as per example
+        chainId: SUPPORTED_CHAIN_IDS['base-sepolia'],
+      },
+    });
 
-  return txn;
+    return response;
+  } catch (err) {
+    console.error('Error pulling funds from privy server wallet:', err);
+    if (err instanceof HTTPError) {
+      console.error('Privy API error response:', await err.response.json());
+    }
+    throw err; // Re-throw to let caller handle the error
+  }
 }
