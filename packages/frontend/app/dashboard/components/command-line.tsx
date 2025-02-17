@@ -1,6 +1,6 @@
 'use client';
 
-import { Terminal } from 'lucide-react';
+import { Send } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -96,45 +96,28 @@ function ConnectionModal({ isOpen, onClose, onConnect }: ConnectionModalProps) {
   );
 }
 
+type Message = {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+};
+
 export function CommandLine() {
-  const [command, setCommand] = useState('');
-  const [output, setOutput] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showAbove, setShowAbove] = useState(false);
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filteredCommands = SAMPLE_COMMANDS.filter((cmd) =>
-    cmd.label.toLowerCase().includes(command.toLowerCase())
-  );
-
-  const handleConnect = async (url: string, username: string, password: string) => {
-    try {
-      const response = await fetch(`${url}/poke`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Basic ' + btoa(`${username}:${password}`),
-        },
-        body: JSON.stringify({
-          text: 'Hello! What can you do?',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to connect: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setOutput(`Connected successfully! Agent response: ${data.text}`);
-    } catch (error) {
-      setOutput(
-        `Error connecting to agent: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -142,138 +125,140 @@ export function CommandLine() {
         e.preventDefault();
         inputRef.current?.focus();
       }
-
-      if (isFocused) {
-        switch (e.key) {
-          case 'ArrowDown':
-            e.preventDefault();
-            setSelectedIndex((prev) => (prev < filteredCommands.length - 1 ? prev + 1 : prev));
-            break;
-          case 'ArrowUp':
-            e.preventDefault();
-            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
-            break;
-          case 'Enter':
-            e.preventDefault();
-            if (filteredCommands.length > 0) {
-              const selectedCommand = filteredCommands[selectedIndex].label;
-              if (selectedCommand === 'connect') {
-                setIsModalOpen(true);
-              }
-              setCommand('');
-              setSelectedIndex(0);
-              inputRef.current?.blur();
-            }
-            break;
-        }
-      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFocused, selectedIndex, filteredCommands]);
+  }, []);
 
-  useEffect(() => {
-    const updatePosition = () => {
-      if (inputRef.current && popoverRef.current && isFocused) {
-        const inputRect = inputRef.current.getBoundingClientRect();
-        const popoverHeight = popoverRef.current.offsetHeight;
-        const spaceBelow = window.innerHeight - inputRect.bottom;
+  const sendMessage = async (text: string) => {
+    if (!text.trim()) return;
 
-        // If there's not enough space below (less than popover height + 10px padding)
-        setShowAbove(spaceBelow < popoverHeight + 10);
+    const newMessage: Message = {
+      id: crypto.randomUUID(),
+      text,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${DMNO_PUBLIC_CONFIG.CHATBOT_URL}/poke`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:
+            'Basic ' +
+            btoa(`${DMNO_PUBLIC_CONFIG.CHATBOT_USERNAME}:${DMNO_PUBLIC_CONFIG.CHATBOT_PASSWORD}`),
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.statusText}`);
       }
-    };
 
-    updatePosition();
-    window.addEventListener('scroll', updatePosition);
-    window.addEventListener('resize', updatePosition);
+      const data = await response.json();
 
-    return () => {
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [isFocused]);
+      const botMessage: Message = {
+        id: crypto.randomUUID(),
+        text: data.text,
+        sender: 'bot',
+        timestamp: new Date(),
+      };
 
-  const handleCommand = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (command === 'connect') {
-      setIsModalOpen(true);
-    } else {
-      setOutput(`Executing command: ${command}`);
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        text: 'Sorry, I encountered an error while processing your message.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    setCommand('');
-    setSelectedIndex(0);
-    inputRef.current?.blur();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
   };
 
   return (
-    <>
-      <div className="relative bg-gray-100 dark:bg-gray-900 p-4 border-t border-gray-300 dark:border-green-400 overflow-visible">
-        <form onSubmit={handleCommand} className="flex items-center space-x-2">
-          <Terminal size={20} className="text-gray-600 dark:text-green-400" />
+    <div className="flex flex-col h-[400px] bg-gray-100 dark:bg-gray-900 border-t border-gray-300 dark:border-green-400">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] p-3 rounded-lg ${
+                message.sender === 'user'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-green-400'
+              }`}
+            >
+              <p className="text-sm">{message.text}</p>
+              <p className="text-xs mt-1 opacity-70">{message.timestamp.toLocaleTimeString()}</p>
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] p-3 rounded-lg bg-gray-200 dark:bg-gray-800">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 bg-gray-500 dark:bg-green-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-gray-500 dark:bg-green-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 bg-gray-500 dark:bg-green-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-300 dark:border-green-400">
+        <div className="flex items-center space-x-2">
           <input
             ref={inputRef}
             type="text"
-            value={command}
-            onChange={(e) => {
-              setCommand(e.target.value);
-              setSelectedIndex(0);
-            }}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 100)}
-            placeholder={isFocused ? 'Type a command...' : 'Enter command... (⌘K)'}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={isLoading ? 'Waiting for response...' : 'Type a message... (⌘K)'}
+            disabled={isLoading}
             className="flex-1 bg-transparent border-none outline-none text-gray-800 dark:text-green-400 placeholder-gray-500 dark:placeholder-green-600"
           />
-        </form>
-
-        {isFocused && filteredCommands.length > 0 && (
-          <div
-            ref={popoverRef}
-            style={{
-              position: 'fixed',
-              left: inputRef.current?.getBoundingClientRect().left ?? 0,
-              ...(showAbove
-                ? {
-                    bottom: `${window.innerHeight - (inputRef.current?.getBoundingClientRect().top ?? 0)}px`,
-                  }
-                : { top: `${(inputRef.current?.getBoundingClientRect().bottom ?? 0) + 8}px` }),
-            }}
-            className="w-[500px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto z-[5000]"
+          <button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {filteredCommands.map((cmd, index) => (
-              <div
-                key={cmd.id}
-                className={`p-2 cursor-pointer ${
-                  index === selectedIndex
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-                onMouseEnter={() => setSelectedIndex(index)}
-                onClick={() => {
-                  if (cmd.label === 'connect') {
-                    setIsModalOpen(true);
-                  } else {
-                    setCommand(cmd.label);
-                  }
-                  inputRef.current?.focus();
-                }}
-              >
-                <div className="font-medium text-gray-800 dark:text-green-400">{cmd.label}</div>
-                <div className="text-sm text-gray-500 dark:text-green-600">{cmd.description}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {output && <div className="mt-2 text-sm text-gray-600 dark:text-green-400">{output}</div>}
-      </div>
+            <Send
+              size={20}
+              className={`${
+                isLoading || !input.trim()
+                  ? 'text-gray-400 dark:text-gray-600'
+                  : 'text-green-500 dark:text-green-400'
+              }`}
+            />
+          </button>
+        </div>
+      </form>
 
       <ConnectionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConnect={handleConnect}
+        onConnect={(url, username, password) => {
+          // Handle connection logic
+        }}
       />
-    </>
+    </div>
   );
 }

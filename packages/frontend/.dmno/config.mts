@@ -32,5 +32,23 @@ export default defineDmnoService({
       required: true,
       value: '1b942ee5-6082-4898-bf72-9ace467959b4',
     },
+
+    CHATBOT_URL: {
+      extends: 'url',
+      required: true,
+      value: 'https://autonome.alt.technology/sa2-rpnrje',
+    },
+
+    CHATBOT_USERNAME: {
+      extends: 'string',
+      required: true,
+      value: 'sa2',
+    },
+
+    CHATBOT_PASSWORD: {
+      extends: 'string',
+      required: true,
+      value: 'qfljGmbhjk',
+    },
   },
 });
